@@ -1,8 +1,107 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Panel główny";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">GamblingBuddies</h1>
+        <p class="lead">
+            Panel administracyjny systemu zarządzania kasynem online.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Sale</h5>
+                    <p class="card-text">Zarządzanie salami kasyna.</p>
+                    <a asp-controller="Halls" asp-action="Index" class="btn btn-primary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Stoły</h5>
+                    <p class="card-text">Zarządzanie stołami i miejscami.</p>
+                    <a asp-controller="GameTables" asp-action="Index" class="btn btn-primary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Gry</h5>
+                    <p class="card-text">Oferta gier oraz warianty rozgrywek.</p>
+                    <a asp-controller="Games" asp-action="Index" class="btn btn-primary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Sesje gier</h5>
+                    <p class="card-text">Planowanie sesji konkretnych gier.</p>
+                    <a asp-controller="GameSessions" asp-action="Index" class="btn btn-success">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Rezerwacje</h5>
+                    <p class="card-text">Obsługa rezerwacji miejsc przy stołach.</p>
+                    <a asp-controller="Reservations" asp-action="Index" class="btn btn-success">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Płatności</h5>
+                    <p class="card-text">Rejestrowanie i kontrola płatności.</p>
+                    <a asp-controller="Payments" asp-action="Index" class="btn btn-success">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Gracze</h5>
+                    <p class="card-text">Dane graczy korzystających z systemu.</p>
+                    <a asp-controller="Players" asp-action="Index" class="btn btn-secondary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Pracownicy</h5>
+                    <p class="card-text">Zarządzanie personelem kasyna.</p>
+                    <a asp-controller="Employees" asp-action="Index" class="btn btn-secondary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Dokumenty</h5>
+                    <p class="card-text">Potwierdzenia, raporty i pliki systemowe.</p>
+                    <a asp-controller="Documents" asp-action="Index" class="btn btn-secondary">Otwórz</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
