@@ -9,6 +9,9 @@ namespace GamblingBuddies.Models
         {
         }
         //
+        public DbSet<RoleDictionary> RoleDictionaries { get; set; }
+        public DbSet<EmployeePositionDictionary> EmployeePositionDictionaries { get; set; }
+        public DbSet<EmployeeStatusDictionary> EmployeeStatusDictionaries { get; set; }
         public DbSet<SystemUser> SystemUsers { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Role> Roles { get; set; }
