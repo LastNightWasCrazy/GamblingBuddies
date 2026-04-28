@@ -22,5 +22,7 @@ namespace GamblingBuddies.Models
 
 
         public ICollection<UserRole> UserRoles { get; set; }
+
+        public ICollection<WorkShift> WorkShiftsCreated { get; set; } = new List<WorkShift>();
     }
 }

@@ -19,6 +19,17 @@ namespace GamblingBuddies.Models
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<ReservationSeat> ReservationSeats { get; set; }
         public DbSet<ReservationStatusDictionary> ReservationStatusDictionaries { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<PaymentStatusDictionary> PaymentStatuses { get; set; }
+        public DbSet<PaymentMethodDictionary> PaymentMethods { get; set; }
+        public DbSet<EmployeeAssignment> EmployeeAssignments { get; set; }
+        public DbSet<WorkShift> WorkShifts { get; set; }
+        public DbSet<ReportDefinition> ReportDefinitions { get; set; }
+        public DbSet<ReportExecution> ReportExecutions { get; set; }
+
+
+
 
         //Wojtek doda
         public DbSet<Hall> Halls { get; set; }
@@ -27,5 +38,11 @@ namespace GamblingBuddies.Models
         public DbSet<Game> Games { get; set; }
         public DbSet<GameVariant> GameVariants { get; set; }
         public DbSet<GameSession> GameSessions { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+
+        }
     }
 }

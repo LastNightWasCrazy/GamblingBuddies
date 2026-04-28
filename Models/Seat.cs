@@ -11,7 +11,7 @@ namespace GamblingBuddies.Models
 
         // FK -> Table
         public int TableId { get; set; }
-        public Table Table { get; set; }
+        public GameTable Table { get; set; }
 
         public int SeatNumber { get; set; }
 

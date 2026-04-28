@@ -11,5 +11,7 @@
         public string Description { get; set; }
 
         public bool IsActive { get; set; }
+
+        public ICollection<GameTable> GameTables { get; set; } = new List<GameTable>();
     }
 }

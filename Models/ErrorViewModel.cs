@@ -1,4 +1,4 @@
-namespace GamblingBuddies.Models
+﻿namespace GamblingBuddies.Models
 {
     public class ErrorViewModel
     {
