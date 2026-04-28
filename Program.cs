@@ -13,6 +13,15 @@ namespace GamblingBuddies
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddAuthentication("MyCookieAuth")
+            .AddCookie("MyCookieAuth", options =>
+            {
+                options.LoginPath = "/Account/Login";
+                options.AccessDeniedPath = "/Account/AccessDenied";
+            });
+
+            builder.Services.AddAuthorization();
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -34,6 +43,7 @@ namespace GamblingBuddies
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
