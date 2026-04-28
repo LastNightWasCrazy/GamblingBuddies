@@ -4,3 +4,4 @@ global using System.Linq;
 global using System.Threading.Tasks;
 global using Microsoft.EntityFrameworkCore;
 global using GamblingBuddies.Models;
+global using System.ComponentModel.DataAnnotations;
