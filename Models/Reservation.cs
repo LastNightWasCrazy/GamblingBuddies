@@ -24,5 +24,7 @@ namespace GamblingBuddies.Models
         public DateTime ReservedAt { get; set; }
 
         public ICollection<ReservationSeat> ReservationSeats { get; set; }
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }
