@@ -1,4 +1,4 @@
-﻿is_global = true
+is_global = true
 build_property.TargetFramework = net9.0
 build_property.TargetFramework = net9.0
 build_property.TargetPlatformMinVersion = 
@@ -30,6 +30,10 @@ build_property.EnableCodeStyleSeverity =
 
 [C:/Users/Bartek/Desktop/ProjektNET/GamblingBuddies/Views/Account/login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxsb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bartek/Desktop/ProjektNET/GamblingBuddies/Views/Halls/Halls.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSGFsbHNcSGFsbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Bartek/Desktop/ProjektNET/GamblingBuddies/Views/Home/Index.cshtml]
