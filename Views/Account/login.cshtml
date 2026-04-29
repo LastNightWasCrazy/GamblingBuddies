@@ -4,9 +4,12 @@
 @{
     ViewData["Title"] = "Logowanie";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
 <h2>Logowanie</h2>
 
-<form asp-contorller="Account" asp-action="login" method="post">
+<form asp-contorller="Account" asp-action="Login" method="post">
 
      <div>
         <label>Login</label>
