@@ -15,7 +15,7 @@ namespace GamblingBuddies.Controllers
         }
 
         
-        public IActionResult HallA()
+        public IActionResult Halls()
         {
             return View("Halls");
         }

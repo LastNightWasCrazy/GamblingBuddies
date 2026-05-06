@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -20,3 +20,124 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.MainDiv {
+    display: flex;
+    flex-direction: column;
+}
+.DivAbout {
+    width: 100%;
+    margin-bottom:1rem;
+}
+
+.DivReservation {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.DivGmaes {
+    width: 100%;
+    margin: auto;
+    margin-bottom: 1rem;
+}
+
+.divDescription {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cardGame {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgb(71 35 48);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+    .cardGame img {
+        width: 200px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+.cardText {
+    color: white;
+}
+
+.btnReservation {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+    .btnReservation:hover {
+        transform: translateY(-3px);
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.6);
+    }
+
+    .btnReservation:active {
+        transform: scale(0.97);
+    }
+
+.card {
+    padding:1rem;
+}
+
+.dropdownBox {
+    position: relative;
+    display: inline-block;
+}
+
+.btnPlus {
+    width: 50px;
+    height: 50px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    font-size: 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0s;
+}
+
+    .btnPlus.active {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+.dropdownMenu {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 0px;
+    width: 220px;
+    background: #2563eb;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-top-left-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+    .dropdownMenu div {
+        padding: 15px;
+        color: white;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .dropdownMenu div:hover {
+            background: #1d4ed8;
+        }

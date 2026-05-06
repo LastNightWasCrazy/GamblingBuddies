@@ -1,0 +1,53 @@
+﻿
+@{
+    @section Styles {
+        <link rel="stylesheet" href="~/css/Reservation.css" asp-append-version="true" />
+    }
+}
+<P>REZERWACJA</P>
+<div class="MainForm">
+<form asp-controller="Reservation" asp-action="Go" method="post">
+
+    <div class="mb-3">
+        <label class="form-label">Wybierz salę</label>
+        <select name="HallId" class="form-select">
+            <option value="">-- wybierz salę --</option>
+            <option value="1">Sala A</option>
+            <option value="2">Sala B</option>
+            <option value="3">Sala C</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Wybierz grę</label>
+        <select name="GameId" class="form-select">
+            <option value="">-- wybierz grę --</option>
+            <option value="1">Poker</option>
+            <option value="2">Blackjack</option>
+            <option value="3">Ruletka</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Rodzaj rezerwacji</label>
+
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="ReservationType" value="Table" checked>
+            <label class="form-check-label">Cały stół</label>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="ReservationType" value="Seat">
+            <label class="form-check-label">Jedno miejsce przy stole</label>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ilość</label>
+        <input type="number" name="Quantity" class="form-control" min="1" value="1">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zarezerwuj</button>
+
+</form>
+</div>
