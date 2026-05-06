@@ -274,8 +274,18 @@
             context.SaveChanges();
 
             context.Set<ReservationSeat>().AddRange(
-                new ReservationSeat { ReservationId = reservation1.ReservationId, SeatId = seat1.SeatId },
-                new ReservationSeat { ReservationId = reservation2.ReservationId, SeatId = seat3.SeatId }
+            new ReservationSeat
+                {
+                ReservationId = reservation1.ReservationId,
+                SeatId = seat1.SeatId,
+                GameSessionId = session1.GameSessionId
+                },
+            new ReservationSeat
+                {
+                    ReservationId = reservation2.ReservationId,
+                    SeatId = seat3.SeatId,
+                    GameSessionId = session2.GameSessionId
+                }
             );
 
             // PŁATNOŚCI

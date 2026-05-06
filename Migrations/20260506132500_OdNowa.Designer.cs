@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamblingBuddies.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260506131750_FixUserRoleRelation")]
-    partial class FixUserRoleRelation
+    [Migration("20260506132500_OdNowa")]
+    partial class OdNowa
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

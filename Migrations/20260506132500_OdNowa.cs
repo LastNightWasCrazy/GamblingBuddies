@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GamblingBuddies.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class OdNowa : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -42,7 +42,7 @@ namespace GamblingBuddies.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GameCategoryDictionary",
+                name: "GameCategoryDictionaries",
                 columns: table => new
                 {
                     GameCategoryId = table.Column<int>(type: "int", nullable: false)
@@ -52,23 +52,21 @@ namespace GamblingBuddies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameCategoryDictionary", x => x.GameCategoryId);
+                    table.PrimaryKey("PK_GameCategoryDictionaries", x => x.GameCategoryId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Halls",
+                name: "HallTypeDictionaries",
                 columns: table => new
                 {
-                    HallId = table.Column<int>(type: "int", nullable: false)
+                    HallTypeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    HallTypeId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Halls", x => x.HallId);
+                    table.PrimaryKey("PK_HallTypeDictionaries", x => x.HallTypeId);
                 });
 
             migrationBuilder.CreateTable(
@@ -159,6 +157,20 @@ namespace GamblingBuddies.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SessionStatusDictionaries",
+                columns: table => new
+                {
+                    SessionStatusId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SessionStatusDictionaries", x => x.SessionStatusId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SystemUsers",
                 columns: table => new
                 {
@@ -190,33 +202,58 @@ namespace GamblingBuddies.Migrations
                 {
                     table.PrimaryKey("PK_Games", x => x.GameId);
                     table.ForeignKey(
-                        name: "FK_Games_GameCategoryDictionary_GameCategoryId",
+                        name: "FK_Games_GameCategoryDictionaries_GameCategoryId",
                         column: x => x.GameCategoryId,
-                        principalTable: "GameCategoryDictionary",
+                        principalTable: "GameCategoryDictionaries",
                         principalColumn: "GameCategoryId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GameTables",
+                name: "Halls",
                 columns: table => new
                 {
-                    GameTableId = table.Column<int>(type: "int", nullable: false)
+                    HallId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    HallId = table.Column<int>(type: "int", nullable: false),
-                    TableNumber = table.Column<int>(type: "int", nullable: false),
-                    MinPlayers = table.Column<int>(type: "int", nullable: false),
-                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HallTypeId = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    HallTypeDictionaryHallTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GameTables", x => x.GameTableId);
+                    table.PrimaryKey("PK_Halls", x => x.HallId);
                     table.ForeignKey(
-                        name: "FK_GameTables_Halls_HallId",
-                        column: x => x.HallId,
-                        principalTable: "Halls",
-                        principalColumn: "HallId",
+                        name: "FK_Halls_HallTypeDictionaries_HallTypeDictionaryHallTypeId",
+                        column: x => x.HallTypeDictionaryHallTypeId,
+                        principalTable: "HallTypeDictionaries",
+                        principalColumn: "HallTypeId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AuditLogs",
+                columns: table => new
+                {
+                    AuditLogId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SystemUserId = table.Column<int>(type: "int", nullable: true),
+                    Action = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EntityName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EntityId = table.Column<int>(type: "int", nullable: true),
+                    Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IpAddress = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditLogs", x => x.AuditLogId);
+                    table.ForeignKey(
+                        name: "FK_AuditLogs_SystemUsers_SystemUserId",
+                        column: x => x.SystemUserId,
+                        principalTable: "SystemUsers",
+                        principalColumn: "SystemUserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -288,8 +325,8 @@ namespace GamblingBuddies.Migrations
                     UserRoleId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SystemUserId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    RoleDictionaryId = table.Column<int>(type: "int", nullable: false)
+                    RoleDictionaryId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -339,22 +376,25 @@ namespace GamblingBuddies.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Seats",
+                name: "GameTables",
                 columns: table => new
                 {
-                    SeatId = table.Column<int>(type: "int", nullable: false)
+                    GameTableId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TableId = table.Column<int>(type: "int", nullable: false),
-                    SeatNumber = table.Column<int>(type: "int", nullable: false)
+                    HallId = table.Column<int>(type: "int", nullable: false),
+                    TableNumber = table.Column<int>(type: "int", nullable: false),
+                    MinPlayers = table.Column<int>(type: "int", nullable: false),
+                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Seats", x => x.SeatId);
+                    table.PrimaryKey("PK_GameTables", x => x.GameTableId);
                     table.ForeignKey(
-                        name: "FK_Seats_GameTables_TableId",
-                        column: x => x.TableId,
-                        principalTable: "GameTables",
-                        principalColumn: "GameTableId",
+                        name: "FK_GameTables_Halls_HallId",
+                        column: x => x.HallId,
+                        principalTable: "Halls",
+                        principalColumn: "HallId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -425,7 +465,8 @@ namespace GamblingBuddies.Migrations
                     StartAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SessionStatusId = table.Column<int>(type: "int", nullable: false),
-                    CreatedByUserId = table.Column<int>(type: "int", nullable: false)
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: false),
+                    SessionStatusDictionarySessionStatusId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -443,10 +484,36 @@ namespace GamblingBuddies.Migrations
                         principalColumn: "GameVariantId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_GameSessions_SessionStatusDictionaries_SessionStatusDictionarySessionStatusId",
+                        column: x => x.SessionStatusDictionarySessionStatusId,
+                        principalTable: "SessionStatusDictionaries",
+                        principalColumn: "SessionStatusId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_GameSessions_SystemUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "SystemUsers",
                         principalColumn: "SystemUserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Seats",
+                columns: table => new
+                {
+                    SeatId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TableId = table.Column<int>(type: "int", nullable: false),
+                    SeatNumber = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seats", x => x.SeatId);
+                    table.ForeignKey(
+                        name: "FK_Seats_GameTables_TableId",
+                        column: x => x.TableId,
+                        principalTable: "GameTables",
+                        principalColumn: "GameTableId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -589,7 +656,7 @@ namespace GamblingBuddies.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Document",
+                name: "Documents",
                 columns: table => new
                 {
                     DocumentId = table.Column<int>(type: "int", nullable: false)
@@ -603,21 +670,21 @@ namespace GamblingBuddies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Document", x => x.DocumentId);
+                    table.PrimaryKey("PK_Documents", x => x.DocumentId);
                     table.ForeignKey(
-                        name: "FK_Document_Payments_PaymentId",
+                        name: "FK_Documents_Payments_PaymentId",
                         column: x => x.PaymentId,
                         principalTable: "Payments",
                         principalColumn: "PaymentId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Document_Reservations_ReservationId",
+                        name: "FK_Documents_Reservations_ReservationId",
                         column: x => x.ReservationId,
                         principalTable: "Reservations",
                         principalColumn: "ReservationId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Document_SystemUsers_CreatedByUserId",
+                        name: "FK_Documents_SystemUsers_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "SystemUsers",
                         principalColumn: "SystemUserId",
@@ -648,7 +715,7 @@ namespace GamblingBuddies.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DocumentFile",
+                name: "DocumentFiles",
                 columns: table => new
                 {
                     DocumentFileId = table.Column<int>(type: "int", nullable: false)
@@ -662,34 +729,39 @@ namespace GamblingBuddies.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DocumentFile", x => x.DocumentFileId);
+                    table.PrimaryKey("PK_DocumentFiles", x => x.DocumentFileId);
                     table.ForeignKey(
-                        name: "FK_DocumentFile_Document_DocumentId",
+                        name: "FK_DocumentFiles_Documents_DocumentId",
                         column: x => x.DocumentId,
-                        principalTable: "Document",
+                        principalTable: "Documents",
                         principalColumn: "DocumentId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Document_CreatedByUserId",
-                table: "Document",
+                name: "IX_AuditLogs_SystemUserId",
+                table: "AuditLogs",
+                column: "SystemUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentFiles_DocumentId",
+                table: "DocumentFiles",
+                column: "DocumentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Documents_CreatedByUserId",
+                table: "Documents",
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Document_PaymentId",
-                table: "Document",
+                name: "IX_Documents_PaymentId",
+                table: "Documents",
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Document_ReservationId",
-                table: "Document",
+                name: "IX_Documents_ReservationId",
+                table: "Documents",
                 column: "ReservationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DocumentFile_DocumentId",
-                table: "DocumentFile",
-                column: "DocumentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmployeeAssignments_AssignedByUserSystemUserId",
@@ -742,6 +814,11 @@ namespace GamblingBuddies.Migrations
                 column: "GameVariantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GameSessions_SessionStatusDictionarySessionStatusId",
+                table: "GameSessions",
+                column: "SessionStatusDictionarySessionStatusId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GameTables_HallId",
                 table: "GameTables",
                 column: "HallId");
@@ -750,6 +827,11 @@ namespace GamblingBuddies.Migrations
                 name: "IX_GameVariants_GameId",
                 table: "GameVariants",
                 column: "GameId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Halls_HallTypeDictionaryHallTypeId",
+                table: "Halls",
+                column: "HallTypeDictionaryHallTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_PaymentMethodId",
@@ -851,7 +933,10 @@ namespace GamblingBuddies.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DocumentFile");
+                name: "AuditLogs");
+
+            migrationBuilder.DropTable(
+                name: "DocumentFiles");
 
             migrationBuilder.DropTable(
                 name: "EmployeeAssignments");
@@ -872,7 +957,7 @@ namespace GamblingBuddies.Migrations
                 name: "WorkShifts");
 
             migrationBuilder.DropTable(
-                name: "Document");
+                name: "Documents");
 
             migrationBuilder.DropTable(
                 name: "ReportDefinitions");
@@ -923,6 +1008,9 @@ namespace GamblingBuddies.Migrations
                 name: "GameVariants");
 
             migrationBuilder.DropTable(
+                name: "SessionStatusDictionaries");
+
+            migrationBuilder.DropTable(
                 name: "SystemUsers");
 
             migrationBuilder.DropTable(
@@ -932,7 +1020,10 @@ namespace GamblingBuddies.Migrations
                 name: "Games");
 
             migrationBuilder.DropTable(
-                name: "GameCategoryDictionary");
+                name: "HallTypeDictionaries");
+
+            migrationBuilder.DropTable(
+                name: "GameCategoryDictionaries");
         }
     }
 }

@@ -10,23 +10,69 @@
 
     <div class="mb-3">
         <label class="form-label">Wybierz salę</label>
-        <select name="HallId" class="form-select">
-            <option value="">-- wybierz salę --</option>
-            <option value="1">Sala A</option>
-            <option value="2">Sala B</option>
-            <option value="3">Sala C</option>
-        </select>
-    </div>
+            <select id="hallSelect" name="HallId" class="form-select">
+                <option value="">-- wybierz salę --</option>
 
-    <div class="mb-3">
+                @foreach (var hall in ViewBag.Halls)
+                {
+                    <option value="@hall.HallId">@hall.Name</option>
+                }
+            </select>
+
         <label class="form-label">Wybierz grę</label>
-        <select name="GameId" class="form-select">
-            <option value="">-- wybierz grę --</option>
-            <option value="1">Poker</option>
-            <option value="2">Blackjack</option>
-            <option value="3">Ruletka</option>
-        </select>
+                <select id="gameSelect" name="GameId" class="form-select">
+                    <option value="">-- najpierw wybierz salę --</option>
+                </select>
+            <label class="form-label">Czas</label>
+            <select id="sessionSelect" name="GameSessionId" class="form-select">
+                <option value="">-- najpierw wybierz grę --</option>
+            </select>
     </div>
+        <script>
+            const hallSelect = document.getElementById("hallSelect");
+            const gameSelect = document.getElementById("gameSelect");
+            const sessionSelect = document.getElementById("sessionSelect");
+
+            hallSelect.addEventListener("change", function () {
+                const hallId = this.value;
+
+                gameSelect.innerHTML = '<option value="">Ładowanie...</option>';
+                sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+
+                fetch(`/Reservation/GetGamesByHall?hallId=${hallId}`)
+                    .then(response => response.json())
+                    .then(games => {
+                        gameSelect.innerHTML = '<option value="">-- wybierz grę --</option>';
+
+                        games.forEach(game => {
+                            gameSelect.innerHTML += `
+                                <option value="${game.gameId}">
+                                    ${game.name}
+                                </option>`;
+                        });
+                    });
+            });
+
+            gameSelect.addEventListener("change", function () {
+                const hallId = hallSelect.value;
+                const gameId = this.value;
+
+                sessionSelect.innerHTML = '<option value="">Ładowanie...</option>';
+
+                fetch(`/Reservation/GetSessionsByHallAndGame?hallId=${hallId}&gameId=${gameId}`)
+                    .then(response => response.json())
+                    .then(sessions => {
+                        sessionSelect.innerHTML = '<option value="">-- wybierz termin --</option>';
+
+                        sessions.forEach(session => {
+                            sessionSelect.innerHTML += `
+                                <option value="${session.gameSessionId}">
+                                    ${session.text}
+                                </option>`;
+                        });
+                    });
+            });
+        </script>
 
     <div class="mb-3">
         <label class="form-label">Rodzaj rezerwacji</label>
