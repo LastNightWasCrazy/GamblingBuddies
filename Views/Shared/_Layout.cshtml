@@ -6,13 +6,14 @@
     <title>@ViewData["Title"] - GamblingBuddies</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" />
     <link rel="stylesheet" href="~/GamblingBuddies.styles.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
 
                 <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
@@ -29,11 +30,11 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-light" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -41,57 +42,57 @@
                             @if (User.IsInRole("Administrator"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="AdminPanel" asp-action="Index">Panel admina</a>
+                                    <a class="nav-link text-light" asp-controller="AdminPanel" asp-action="Index">Panel admina</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="GameTables" asp-action="Index">Stoły</a>
+                                    <a class="nav-link text-light" asp-controller="GameTables" asp-action="Index">Stoły</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Games" asp-action="Index">Gry</a>
+                                    <a class="nav-link text-light" asp-controller="Games" asp-action="Index">Gry</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
+                                    <a class="nav-link text-light" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Payments" asp-action="Index">Płatności</a>
+                                    <a class="nav-link text-light" asp-controller="Payments" asp-action="Index">Płatności</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="ReportDefinitions" asp-action="Index">Raporty</a>
+                                    <a class="nav-link text-light" asp-controller="ReportDefinitions" asp-action="Index">Raporty</a>
                                 </li>
                             }
 
                             @if (User.IsInRole("Manager"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="ManagerPanel" asp-action="Index">Panel managera</a>
+                                    <a class="nav-link text-light" asp-controller="ManagerPanel" asp-action="Index">Panel managera</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="GameTables" asp-action="Index">Stoły</a>
+                                    <a class="nav-link text-light" asp-controller="GameTables" asp-action="Index">Stoły</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="GameSessions" asp-action="Index">Sesje</a>
+                                    <a class="nav-link text-light" asp-controller="GameSessions" asp-action="Index">Sesje</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
+                                    <a class="nav-link text-light" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
                                 </li>
                             }
 
                             @if (User.IsInRole("Employee"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
+                                    <a class="nav-link text-light" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="GameSessions" asp-action="Index">Sesje</a>
+                                    <a class="nav-link text-light" asp-controller="GameSessions" asp-action="Index">Sesje</a>
                                 </li>
                             }
                         }
@@ -101,7 +102,7 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item me-2">
-                                <span class="nav-link text-dark">
+                                <span class="nav-link text-light">
                                     Zalogowano: @User.Identity.Name
                                 </span>
                             </li>
@@ -115,7 +116,7 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
+                                <a class="nav-link text-light" asp-controller="Account" asp-action="Login">
                                     Logowanie
                                 </a>
                             </li>
