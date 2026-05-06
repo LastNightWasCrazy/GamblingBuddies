@@ -75,9 +75,10 @@
             context.SaveChanges();
 
             context.Set<UserRole>().AddRange(
-                new UserRole { SystemUserId = admin.SystemUserId, RoleId = adminRole.RoleDictionaryId },
-                new UserRole { SystemUserId = manager.SystemUserId, RoleId = managerRole.RoleDictionaryId }
+                new UserRole { SystemUserId = admin.SystemUserId, RoleDictionaryId = adminRole.RoleDictionaryId },
+                new UserRole { SystemUserId = manager.SystemUserId, RoleDictionaryId = managerRole.RoleDictionaryId }
             );
+            context.SaveChanges();
 
             // PRACOWNICY
 
