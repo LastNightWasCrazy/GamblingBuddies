@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace GamblingBuddies.Controllers
 {
@@ -26,7 +27,9 @@ namespace GamblingBuddies.Controllers
         public async Task<IActionResult> Login(string login, string password)
         {
             var user = _context.SystemUsers
-                .FirstOrDefault(u => u.Login == login && u.IsActive);
+    .Include(u => u.UserRoles)
+        .ThenInclude(ur => ur.RoleDictionary)
+    .FirstOrDefault(u => u.Login == login && u.IsActive);
 
             if (user == null)
             {
@@ -41,10 +44,18 @@ namespace GamblingBuddies.Controllers
             }
 
             var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.NameIdentifier, user.SystemUserId.ToString()),
+    new Claim(ClaimTypes.Name, user.Login)
+};
+
+            foreach (var userRole in user.UserRoles)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.SystemUserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Login)
-            };
+                if (userRole.RoleDictionary != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, userRole.RoleDictionary.Name));
+                }
+            }
 
             var identity = new ClaimsIdentity(claims, "MyCookieAuth");
             var principal = new ClaimsPrincipal(identity);

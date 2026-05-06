@@ -9,7 +9,7 @@
 
             // SŁOWNIKI
 
-            var adminRole = new RoleDictionary { Name = "Admin", Description = "Administrator systemu" };
+            var adminRole = new RoleDictionary { Name = "Administrator", Description = "Administrator systemu" };
             var managerRole = new RoleDictionary { Name = "Manager", Description = "Manager sali" };
             var employeeRole = new RoleDictionary { Name = "Employee", Description = "Pracownik" };
 

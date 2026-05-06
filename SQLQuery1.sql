@@ -1,2 +1,1 @@
-﻿
-SELECT * FROM SystemUsers;
+﻿select * from players;

@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Panel administracyjny";
+}
+
+
+<div class="container mt-4">
+    <h1 class="mb-4">Panel administracyjny</h1>
+
+    <div class="row g-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Sale</h5>
+                    <h2>@ViewBag.HallsCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Stoły</h5>
+                    <h2>@ViewBag.TablesCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Aktywne stoły</h5>
+                    <h2>@ViewBag.ActiveTablesCount</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Sesje gier</h5>
+                    <h2>@ViewBag.GameSessionsCount</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="AdminPanel" asp-action="GameTables" class="btn btn-primary">
+            Zarządzanie stołami do gier
+        </a>
+    </div>
+</div>

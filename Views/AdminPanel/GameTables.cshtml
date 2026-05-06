@@ -1,0 +1,44 @@
+﻿@model IEnumerable<GamblingBuddies.Models.GameTable>
+
+@{
+    ViewData["Title"] = "Stoły do gier";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Stoły do gier</h1>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Numer stołu</th>
+                <th>Sala</th>
+                <th>Min graczy</th>
+                <th>Max graczy</th>
+                <th>Liczba miejsc</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var table in Model)
+            {
+                <tr>
+                    <td>@table.TableNumber</td>
+                    <td>@table.Hall?.Name</td>
+                    <td>@table.MinPlayers</td>
+                    <td>@table.MaxPlayers</td>
+                    <td>@table.Seats?.Count</td>
+                    <td>
+                        @if (table.IsActive)
+                        {
+                            <span class="badge bg-success">Aktywny</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Nieaktywny</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
