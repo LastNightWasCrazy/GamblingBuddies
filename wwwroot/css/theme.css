@@ -1,0 +1,67 @@
+﻿body {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/Images/casinobg.png');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar, footer {
+    background-color: #4a0000 !important;
+    border-bottom: 2px solid #b31b1b;
+}
+
+.card, .modal-content, .table {
+    background-color: rgba(30, 0, 0, 0.85);
+    border: 1px solid #b31b1b;
+    color: #fff;
+}
+
+.btn-primary {
+    background-color: #8b0000;
+    border-color: #c0392b;
+}
+
+    .btn-primary:hover {
+        background-color: #a52a2a;
+        border-color: #e67e22;
+    }
+
+.table th {
+    background-color: #5a0000;
+    color: #ffdab9;
+}
+
+.table td {
+    background-color: #3a0000;
+    color: #f0f0f0;
+}
+
+input, select, textarea {
+    background-color: #2c0000;
+    color: #fff;
+    border: 1px solid #b31b1b;
+}
+
+    input:focus, select:focus, textarea:focus {
+        background-color: #4a0000;
+        color: #fff;
+        border-color: #e67e22;
+        box-shadow: none;
+    }
+
+.alert-danger {
+    background-color: #4a0000;
+    border-color: #c0392b;
+    color: #ffb6b6;
+}
+
+a {
+    color: #ffb6b6;
+}
+
+a:hover {
+    color: #e67e22;
+    text-decoration: none;
+ }

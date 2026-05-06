@@ -19,6 +19,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  color: white;
 }
 
 .MainDiv {
@@ -56,12 +57,12 @@ body {
     border-radius: 10px;
 }
 
-    .cardGame img {
-        width: 200px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 10px;
-    }
+.cardGame img {
+    width: 200px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
 
 .cardText {
     color: white;
@@ -80,15 +81,15 @@ body {
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
 }
 
-    .btnReservation:hover {
-        transform: translateY(-3px);
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.6);
-    }
+.btnReservation:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.6);
+}
 
-    .btnReservation:active {
-        transform: scale(0.97);
-    }
+.btnReservation:active {
+    transform: scale(0.97);
+}
 
 .card {
     padding:1rem;
@@ -111,10 +112,10 @@ body {
     transition: 0s;
 }
 
-    .btnPlus.active {
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-    }
+.btnPlus.active {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
 
 .dropdownMenu {
     display: none;
@@ -131,13 +132,13 @@ body {
     z-index: 1000;
 }
 
-    .dropdownMenu div {
-        padding: 15px;
-        color: white;
-        cursor: pointer;
-        transition: 0.2s;
-    }
+.dropdownMenu div {
+    padding: 15px;
+    color: #8c00ff;
+    cursor: pointer;
+    transition: 0.2s;
+}
 
-        .dropdownMenu div:hover {
-            background: #1d4ed8;
-        }
+.dropdownMenu div:hover {
+    background: #1d4ed8;
+}
