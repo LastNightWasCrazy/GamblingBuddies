@@ -4,83 +4,142 @@
     {
         public static void Seed(AppDbContext context)
         {
-            if (context.Set<SystemUser>().Any())
+            SeedRolesAndUsers(context);
+
+            if (context.Set<Hall>().Any() ||
+                context.Set<Game>().Any() ||
+                context.Set<GameTable>().Any())
+            {
                 return;
+            }
 
-            // SŁOWNIKI
+            SeedBusinessData(context);
+        }
 
-            var adminRole = new RoleDictionary { Name = "Administrator", Description = "Administrator systemu" };
-            var managerRole = new RoleDictionary { Name = "Manager", Description = "Manager sali" };
-            var employeeRole = new RoleDictionary { Name = "Employee", Description = "Pracownik" };
-
-            var dealerPosition = new EmployeePositionDictionary { Name = "Dealer", Description = "Krupier" };
-            var managerPosition = new EmployeePositionDictionary { Name = "Manager", Description = "Kierownik" };
-
-            var activeEmployeeStatus = new EmployeeStatusDictionary { Name = "Active", Description = "Aktywny" };
-            var inactiveEmployeeStatus = new EmployeeStatusDictionary { Name = "Inactive", Description = "Nieaktywny" };
-
-            var standardHallType = new HallTypeDictionary { Name = "Standard", Description = "Sala standardowa" };
-            var vipHallType = new HallTypeDictionary { Name = "VIP", Description = "Sala VIP" };
-
-            var cardsCategory = new GameCategoryDictionary { Name = "Cards", Description = "Gry karciane" };
-            var rouletteCategory = new GameCategoryDictionary { Name = "Roulette", Description = "Ruletka" };
-
-            var plannedSessionStatus = new SessionStatusDictionary { Name = "Planned", Description = "Zaplanowana" };
-            var finishedSessionStatus = new SessionStatusDictionary { Name = "Finished", Description = "Zakończona" };
-
-            var pendingReservationStatus = new ReservationStatusDictionary { Name = "Pending", Description = "Oczekująca" };
-            var confirmedReservationStatus = new ReservationStatusDictionary { Name = "Confirmed", Description = "Potwierdzona" };
-
-            var pendingPaymentStatus = new PaymentStatusDictionary { Name = "Pending", Description = "Oczekująca" };
-            var paidPaymentStatus = new PaymentStatusDictionary { Name = "Paid", Description = "Opłacona" };
-
-            var cashMethod = new PaymentMethodDictionary { Name = "Cash", Description = "Gotówka" };
-            var cardMethod = new PaymentMethodDictionary { Name = "Card", Description = "Karta" };
-
-            context.AddRange(
-                adminRole, managerRole, employeeRole,
-                dealerPosition, managerPosition,
-                activeEmployeeStatus, inactiveEmployeeStatus,
-                standardHallType, vipHallType,
-                cardsCategory, rouletteCategory,
-                plannedSessionStatus, finishedSessionStatus,
-                pendingReservationStatus, confirmedReservationStatus,
-                pendingPaymentStatus, paidPaymentStatus,
-                cashMethod, cardMethod
-            );
-
-            context.SaveChanges();
-
-            // UŻYTKOWNICY
-
-            var admin = new SystemUser
+        private static void SeedRolesAndUsers(AppDbContext context)
+        {
+            var adminRole = context.Set<RoleDictionary>().FirstOrDefault(r => r.Name == "Administrator");
+            if (adminRole == null)
             {
-                Login = "admin",
-                Email = "admin@gamblingbuddies.local",
-                PasswordHash = "admin123",
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            };
+                adminRole = new RoleDictionary
+                {
+                    Name = "Administrator",
+                    Description = "Administrator systemu",
+                    IsActive = true
+                };
+                context.Set<RoleDictionary>().Add(adminRole);
+            }
 
-            var manager = new SystemUser
+            var managerRole = context.Set<RoleDictionary>().FirstOrDefault(r => r.Name == "Manager");
+            if (managerRole == null)
             {
-                Login = "manager",
-                Email = "manager@gamblingbuddies.local",
-                PasswordHash = "manager123",
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            };
+                managerRole = new RoleDictionary
+                {
+                    Name = "Manager",
+                    Description = "Manager sali",
+                    IsActive = true
+                };
+                context.Set<RoleDictionary>().Add(managerRole);
+            }
 
-            context.Set<SystemUser>().AddRange(admin, manager);
+            var employeeRole = context.Set<RoleDictionary>().FirstOrDefault(r => r.Name == "Employee");
+            if (employeeRole == null)
+            {
+                employeeRole = new RoleDictionary
+                {
+                    Name = "Employee",
+                    Description = "Pracownik",
+                    IsActive = true
+                };
+                context.Set<RoleDictionary>().Add(employeeRole);
+            }
+
             context.SaveChanges();
 
-            context.Set<UserRole>().AddRange(
-                new UserRole { SystemUserId = admin.SystemUserId, RoleDictionaryId = adminRole.RoleDictionaryId },
-                new UserRole { SystemUserId = manager.SystemUserId, RoleDictionaryId = managerRole.RoleDictionaryId }
-            );
-            context.SaveChanges();
+            var admin = context.Set<SystemUser>().FirstOrDefault(u => u.Login == "admin");
+            if (admin == null)
+            {
+                admin = new SystemUser
+                {
+                    Login = "admin",
+                    Email = "admin@gamblingbuddies.local",
+                    PasswordHash = "admin123",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+                context.Set<SystemUser>().Add(admin);
+                context.SaveChanges();
+            }
 
-            // PRACOWNICY
+            var manager = context.Set<SystemUser>().FirstOrDefault(u => u.Login == "manager");
+            if (manager == null)
+            {
+                manager = new SystemUser
+                {
+                    Login = "manager",
+                    Email = "manager@gamblingbuddies.local",
+                    PasswordHash = "manager123",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+                context.Set<SystemUser>().Add(manager);
+                context.SaveChanges();
+            }
+
+            if (!context.Set<UserRole>().Any(ur =>
+                    ur.SystemUserId == admin.SystemUserId &&
+                    ur.RoleDictionaryId == adminRole.RoleDictionaryId))
+            {
+                context.Set<UserRole>().Add(new UserRole
+                {
+                    SystemUserId = admin.SystemUserId,
+                    RoleDictionaryId = adminRole.RoleDictionaryId
+                });
+            }
+
+            if (!context.Set<UserRole>().Any(ur =>
+                    ur.SystemUserId == manager.SystemUserId &&
+                    ur.RoleDictionaryId == managerRole.RoleDictionaryId))
+            {
+                context.Set<UserRole>().Add(new UserRole
+                {
+                    SystemUserId = manager.SystemUserId,
+                    RoleDictionaryId = managerRole.RoleDictionaryId
+                });
+            }
+
+            context.SaveChanges();
+        }
+
+        private static void SeedBusinessData(AppDbContext context)
+        {
+            var dealerPosition = GetOrCreateEmployeePosition(context, "Dealer", "Krupier");
+            var managerPosition = GetOrCreateEmployeePosition(context, "Manager", "Kierownik");
+
+            var activeEmployeeStatus = GetOrCreateEmployeeStatus(context, "Active", "Aktywny");
+            var inactiveEmployeeStatus = GetOrCreateEmployeeStatus(context, "Inactive", "Nieaktywny");
+
+            var standardHallType = GetOrCreateHallType(context, "Standard", "Sala standardowa");
+            var vipHallType = GetOrCreateHallType(context, "VIP", "Sala VIP");
+            var tournamentHallType = GetOrCreateHallType(context, "Tournament", "Sala turniejowa");
+
+            var cardsCategory = GetOrCreateGameCategory(context, "Cards", "Gry karciane");
+            var rouletteCategory = GetOrCreateGameCategory(context, "Roulette", "Ruletka");
+
+            var plannedSessionStatus = GetOrCreateSessionStatus(context, "Planned", "Zaplanowana");
+            var finishedSessionStatus = GetOrCreateSessionStatus(context, "Finished", "Zakończona");
+
+            var pendingReservationStatus = GetOrCreateReservationStatus(context, "Pending", "Oczekująca");
+            var confirmedReservationStatus = GetOrCreateReservationStatus(context, "Confirmed", "Potwierdzona");
+
+            var pendingPaymentStatus = GetOrCreatePaymentStatus(context, "Pending", "Oczekująca");
+            var paidPaymentStatus = GetOrCreatePaymentStatus(context, "Paid", "Opłacona");
+
+            var cashMethod = GetOrCreatePaymentMethod(context, "Cash", "Gotówka");
+            var cardMethod = GetOrCreatePaymentMethod(context, "Card", "Karta");
+
+            var admin = context.Set<SystemUser>().First(u => u.Login == "admin");
+            var manager = context.Set<SystemUser>().First(u => u.Login == "manager");
 
             var employee1 = new Employee
             {
@@ -106,8 +165,6 @@
 
             context.Set<Employee>().AddRange(employee1, employee2);
 
-            // GRACZE
-
             var player1 = new Player
             {
                 FirstName = "Piotr",
@@ -129,13 +186,11 @@
             context.Set<Player>().AddRange(player1, player2);
             context.SaveChanges();
 
-            // SALE
-
             var hall1 = new Hall
             {
                 Name = "Main Hall",
                 HallTypeId = standardHallType.HallTypeId,
-                Description = "Główna sala",
+                Description = "Główna sala kasyna z klasycznymi grami stołowymi.",
                 IsActive = true
             };
 
@@ -143,19 +198,25 @@
             {
                 Name = "VIP Hall",
                 HallTypeId = vipHallType.HallTypeId,
-                Description = "Sala VIP",
+                Description = "Ekskluzywna sala dla klientów VIP.",
                 IsActive = true
             };
 
-            context.Set<Hall>().AddRange(hall1, hall2);
-            context.SaveChanges();
+            var hall3 = new Hall
+            {
+                Name = "Tournament Hall",
+                HallTypeId = tournamentHallType.HallTypeId,
+                Description = "Sala turniejowa przeznaczona do większych rozgrywek.",
+                IsActive = true
+            };
 
-            // STOŁY
+            context.Set<Hall>().AddRange(hall1, hall2, hall3);
+            context.SaveChanges();
 
             var table1 = new GameTable
             {
                 HallId = hall1.HallId,
-                TableNumber = 1,
+                TableNumber = 101,
                 MinPlayers = 1,
                 MaxPlayers = 6,
                 IsActive = true
@@ -163,31 +224,59 @@
 
             var table2 = new GameTable
             {
+                HallId = hall1.HallId,
+                TableNumber = 102,
+                MinPlayers = 2,
+                MaxPlayers = 8,
+                IsActive = true
+            };
+
+            var table3 = new GameTable
+            {
                 HallId = hall2.HallId,
-                TableNumber = 2,
+                TableNumber = 201,
                 MinPlayers = 1,
                 MaxPlayers = 5,
                 IsActive = true
             };
 
-            context.Set<GameTable>().AddRange(table1, table2);
+            var table4 = new GameTable
+            {
+                HallId = hall3.HallId,
+                TableNumber = 301,
+                MinPlayers = 2,
+                MaxPlayers = 10,
+                IsActive = true
+            };
+
+            context.Set<GameTable>().AddRange(table1, table2, table3, table4);
             context.SaveChanges();
 
-            // MIEJSCA
-
-            var seat1 = new Seat { TableId = table1.GameTableId, SeatNumber = 1 };
-            var seat2 = new Seat { TableId = table1.GameTableId, SeatNumber = 2 };
-            var seat3 = new Seat { TableId = table2.GameTableId, SeatNumber = 1 };
-
-            context.Set<Seat>().AddRange(seat1, seat2, seat3);
-
-            // GRY
+            context.Set<Seat>().AddRange(
+                new Seat { TableId = table1.GameTableId, SeatNumber = 1 },
+                new Seat { TableId = table1.GameTableId, SeatNumber = 2 },
+                new Seat { TableId = table1.GameTableId, SeatNumber = 3 },
+                new Seat { TableId = table2.GameTableId, SeatNumber = 1 },
+                new Seat { TableId = table2.GameTableId, SeatNumber = 2 },
+                new Seat { TableId = table3.GameTableId, SeatNumber = 1 },
+                new Seat { TableId = table3.GameTableId, SeatNumber = 2 },
+                new Seat { TableId = table4.GameTableId, SeatNumber = 1 },
+                new Seat { TableId = table4.GameTableId, SeatNumber = 2 }
+            );
 
             var poker = new Game
             {
                 Name = "Poker",
                 GameCategoryId = cardsCategory.GameCategoryId,
-                Description = "Gra karciana Poker",
+                Description = "Gra karciana oparta na strategii, blefie i analizie przeciwników.",
+                IsActive = true
+            };
+
+            var blackjack = new Game
+            {
+                Name = "Blackjack",
+                GameCategoryId = cardsCategory.GameCategoryId,
+                Description = "Gra karciana, której celem jest uzyskanie wyniku jak najbliższego 21.",
                 IsActive = true
             };
 
@@ -195,22 +284,30 @@
             {
                 Name = "Roulette",
                 GameCategoryId = rouletteCategory.GameCategoryId,
-                Description = "Klasyczna ruletka",
+                Description = "Klasyczna gra losowa oparta na kole ruletki.",
                 IsActive = true
             };
 
-            context.Set<Game>().AddRange(poker, roulette);
+            context.Set<Game>().AddRange(poker, blackjack, roulette);
             context.SaveChanges();
-
-            // WARIANTY GIER
 
             var texasHoldem = new GameVariant
             {
                 GameId = poker.GameId,
                 Name = "Texas Holdem",
-                RulesDescription = "Standardowe zasady Texas Holdem",
+                RulesDescription = "Standardowe zasady Texas Holdem.",
                 DefaultMinBet = 10,
                 DefaultMaxBet = 500,
+                IsActive = true
+            };
+
+            var blackjackClassic = new GameVariant
+            {
+                GameId = blackjack.GameId,
+                Name = "Blackjack Classic",
+                RulesDescription = "Klasyczne zasady blackjacka.",
+                DefaultMinBet = 10,
+                DefaultMaxBet = 400,
                 IsActive = true
             };
 
@@ -218,16 +315,14 @@
             {
                 GameId = roulette.GameId,
                 Name = "European Roulette",
-                RulesDescription = "Ruletka europejska",
+                RulesDescription = "Ruletka europejska z pojedynczym zerem.",
                 DefaultMinBet = 5,
                 DefaultMaxBet = 300,
                 IsActive = true
             };
 
-            context.Set<GameVariant>().AddRange(texasHoldem, europeanRoulette);
+            context.Set<GameVariant>().AddRange(texasHoldem, blackjackClassic, europeanRoulette);
             context.SaveChanges();
-
-            // SESJE
 
             var session1 = new GameSession
             {
@@ -241,7 +336,7 @@
 
             var session2 = new GameSession
             {
-                GameVariantId = europeanRoulette.GameVariantId,
+                GameVariantId = blackjackClassic.GameVariantId,
                 GameTableId = table2.GameTableId,
                 StartAt = DateTime.Now.AddHours(3),
                 EndAt = DateTime.Now.AddHours(6),
@@ -249,10 +344,18 @@
                 CreatedByUserId = admin.SystemUserId
             };
 
-            context.Set<GameSession>().AddRange(session1, session2);
-            context.SaveChanges();
+            var session3 = new GameSession
+            {
+                GameVariantId = europeanRoulette.GameVariantId,
+                GameTableId = table3.GameTableId,
+                StartAt = DateTime.Now.AddHours(1),
+                EndAt = DateTime.Now.AddHours(4),
+                SessionStatusId = plannedSessionStatus.SessionStatusId,
+                CreatedByUserId = admin.SystemUserId
+            };
 
-            // REZERWACJE
+            context.Set<GameSession>().AddRange(session1, session2, session3);
+            context.SaveChanges();
 
             var reservation1 = new Reservation
             {
@@ -265,7 +368,7 @@
             var reservation2 = new Reservation
             {
                 PlayerId = player2.PlayerId,
-                GameSessionId = session2.GameSessionId,
+                GameSessionId = session3.GameSessionId,
                 ReservationStatusId = pendingReservationStatus.ReservationStatusId,
                 ReservedAt = DateTime.Now
             };
@@ -274,21 +377,19 @@
             context.SaveChanges();
 
             context.Set<ReservationSeat>().AddRange(
-            new ReservationSeat
+                new ReservationSeat
                 {
-                ReservationId = reservation1.ReservationId,
-                SeatId = seat1.SeatId,
-                GameSessionId = session1.GameSessionId
+                    ReservationId = reservation1.ReservationId,
+                    SeatId = context.Set<Seat>().First(s => s.TableId == table1.GameTableId).SeatId,
+                    GameSessionId = session1.GameSessionId
                 },
-            new ReservationSeat
+                new ReservationSeat
                 {
                     ReservationId = reservation2.ReservationId,
-                    SeatId = seat3.SeatId,
-                    GameSessionId = session2.GameSessionId
+                    SeatId = context.Set<Seat>().First(s => s.TableId == table3.GameTableId).SeatId,
+                    GameSessionId = session3.GameSessionId
                 }
             );
-
-            // PŁATNOŚCI
 
             var payment1 = new Payment
             {
@@ -324,8 +425,6 @@
                 }
             );
 
-            // PRACOWNICY W SESJACH I ZMIANY
-
             context.Set<EmployeeAssignment>().AddRange(
                 new EmployeeAssignment
                 {
@@ -336,7 +435,7 @@
                 new EmployeeAssignment
                 {
                     EmployeeId = employee2.EmployeeId,
-                    GameSessionId = session2.GameSessionId,
+                    GameSessionId = session3.GameSessionId,
                     AssingedByUserId = admin.SystemUserId
                 }
             );
@@ -358,9 +457,7 @@
                 }
             );
 
-            // RAPORTY
-
-            var reportDefinition = new ReportDefinition
+            /*var reportDefinition = new ReportDefinition
             {
                 Name = "Daily Reservations",
                 Description = "Raport dziennych rezerwacji",
@@ -371,18 +468,15 @@
             context.Set<ReportDefinition>().Add(reportDefinition);
             context.SaveChanges();
 
-            var reportExecution = new ReportExecution
-            {
-                ReportDefinitionId = reportDefinition.ReportDefinitionId,
-                GeneratedByUserId = admin.SystemUserId,
-                GeneratedAt = DateTime.Now,
-                ParametersJson = "{}"
-            };
-
-            context.Set<ReportExecution>().Add(reportExecution);
-            context.SaveChanges();
-
-            // DOKUMENTY
+            context.Set<ReportExecution>().Add(
+                new ReportExecution
+                {
+                    ReportDefinitionId = reportDefinition.ReportDefinitionId,
+                    GeneratedByUserId = admin.SystemUserId,
+                    GeneratedAt = DateTime.Now,
+                    ParametersJson = "{}"
+                }
+            );
 
             var document = new Document
             {
@@ -395,6 +489,7 @@
 
             context.Set<Document>().Add(document);
             context.SaveChanges();
+           
 
             context.Set<DocumentFile>().Add(
                 new DocumentFile
@@ -408,8 +503,6 @@
                 }
             );
 
-            // AUDYT
-
             context.Set<AuditLog>().Add(
                 new AuditLog
                 {
@@ -417,13 +510,110 @@
                     Action = "Create",
                     EntityName = "Reservation",
                     EntityId = reservation1.ReservationId,
-                    Details = "Utworzono rezerwację",
+                    Details = "Utworzono przykładową rezerwację",
                     CreatedAt = DateTime.Now,
                     IpAddress = "127.0.0.1"
                 }
             );
 
             context.SaveChanges();
+             */
+        }
+
+        private static EmployeePositionDictionary GetOrCreateEmployeePosition(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<EmployeePositionDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new EmployeePositionDictionary { Name = name, Description = description, IsActive = true };
+            context.Set<EmployeePositionDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static EmployeeStatusDictionary GetOrCreateEmployeeStatus(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<EmployeeStatusDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new EmployeeStatusDictionary { Name = name, Description = description, IsActive = true };
+            context.Set<EmployeeStatusDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static HallTypeDictionary GetOrCreateHallType(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<HallTypeDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new HallTypeDictionary { Name = name, Description = description};
+            context.Set<HallTypeDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static GameCategoryDictionary GetOrCreateGameCategory(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<GameCategoryDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new GameCategoryDictionary { Name = name, Description = description };
+            context.Set<GameCategoryDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static SessionStatusDictionary GetOrCreateSessionStatus(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<SessionStatusDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new SessionStatusDictionary { Name = name, Description = description };
+            context.Set<SessionStatusDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static ReservationStatusDictionary GetOrCreateReservationStatus(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<ReservationStatusDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new ReservationStatusDictionary { Name = name, Description = description };
+            context.Set<ReservationStatusDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static PaymentStatusDictionary GetOrCreatePaymentStatus(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<PaymentStatusDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new PaymentStatusDictionary { Name = name, Description = description };
+            context.Set<PaymentStatusDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
+        }
+
+        private static PaymentMethodDictionary GetOrCreatePaymentMethod(AppDbContext context, string name, string description)
+        {
+            var item = context.Set<PaymentMethodDictionary>().FirstOrDefault(x => x.Name == name);
+            if (item != null) return item;
+
+            item = new PaymentMethodDictionary { Name = name, Description = description };
+            context.Set<PaymentMethodDictionary>().Add(item);
+            context.SaveChanges();
+
+            return item;
         }
     }
 }

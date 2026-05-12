@@ -1,0 +1,64 @@
+﻿@model IEnumerable<GamblingBuddies.Models.GameTable>
+
+@{
+    ViewData["Title"] = "Stoły do gier";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Stoły do gier</h1>
+        <a class="btn btn-success" asp-controller="GameTables" asp-action="Create">
+            Dodaj stół
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <table class="table table-dark table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Numer stołu</th>
+                        <th>Sala</th>
+                        <th>Min. graczy</th>
+                        <th>Max. graczy</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var table in Model)
+                    {
+                        <tr>
+                            <td>@table.TableNumber</td>
+                            <td>@table.Hall?.Name</td>
+                            <td>@table.MinPlayers</td>
+                            <td>@table.MaxPlayers</td>
+                            <td>
+                                @if (table.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktywny</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Nieaktywny</span>
+                                }
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@table.GameTableId">
+                                    Szczegóły
+                                </a>
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@table.GameTableId">
+                                    Edytuj
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>

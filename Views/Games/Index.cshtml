@@ -1,0 +1,62 @@
+﻿@model IEnumerable<GamblingBuddies.Models.Game>
+
+@{
+    ViewData["Title"] = "Gry";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gry</h1>
+        <a class="btn btn-success" asp-controller="Games" asp-action="Create">
+            Dodaj grę
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <table class="table table-dark table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Nazwa</th>
+                        <th>Kategoria</th>
+                        <th>Opis</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var game in Model)
+                    {
+                        <tr>
+                            <td>@game.Name</td>
+                            <td>@game.GameCategory?.Name</td>
+                            <td>@game.Description</td>
+                            <td>
+                                @if (game.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktywna</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Nieaktywna</span>
+                                }
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@game.GameId">
+                                    Szczegóły
+                                </a>
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@game.GameId">
+                                    Edytuj
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
