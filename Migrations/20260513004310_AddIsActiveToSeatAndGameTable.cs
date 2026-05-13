@@ -527,8 +527,7 @@ namespace GamblingBuddies.Migrations
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
                     GameSessionId = table.Column<int>(type: "int", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    AssingedByUserId = table.Column<int>(type: "int", nullable: false),
-                    AssignedByUserSystemUserId = table.Column<int>(type: "int", nullable: false)
+                    AssignedByUserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -546,8 +545,8 @@ namespace GamblingBuddies.Migrations
                         principalColumn: "GameSessionId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_EmployeeAssignments_SystemUsers_AssignedByUserSystemUserId",
-                        column: x => x.AssignedByUserSystemUserId,
+                        name: "FK_EmployeeAssignments_SystemUsers_AssignedByUserId",
+                        column: x => x.AssignedByUserId,
                         principalTable: "SystemUsers",
                         principalColumn: "SystemUserId",
                         onDelete: ReferentialAction.Restrict);
@@ -765,9 +764,9 @@ namespace GamblingBuddies.Migrations
                 column: "ReservationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmployeeAssignments_AssignedByUserSystemUserId",
+                name: "IX_EmployeeAssignments_AssignedByUserId",
                 table: "EmployeeAssignments",
-                column: "AssignedByUserSystemUserId");
+                column: "AssignedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmployeeAssignments_EmployeeId",

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamblingBuddies.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260512201321_AddIsActiveToSeatAndGameTable")]
+    [Migration("20260513004310_AddIsActiveToSeatAndGameTable")]
     partial class AddIsActiveToSeatAndGameTable
     {
         /// <inheritdoc />
@@ -24,6 +24,37 @@ namespace GamblingBuddies.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("EmployeeAssignment", b =>
+                {
+                    b.Property<int>("EmployeeAssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeAssignmentId"));
+
+                    b.Property<int>("AssignedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GameSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EmployeeAssignmentId");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("GameSessionId");
+
+                    b.ToTable("EmployeeAssignments");
+                });
 
             modelBuilder.Entity("GamblingBuddies.Models.AuditLog", b =>
                 {
@@ -187,40 +218,6 @@ namespace GamblingBuddies.Migrations
                     b.HasIndex("SystemUserId");
 
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("GamblingBuddies.Models.EmployeeAssignment", b =>
-                {
-                    b.Property<int>("EmployeeAssignmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeAssignmentId"));
-
-                    b.Property<int>("AssignedByUserSystemUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AssingedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GameSessionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("EmployeeAssignmentId");
-
-                    b.HasIndex("AssignedByUserSystemUserId");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("GameSessionId");
-
-                    b.ToTable("EmployeeAssignments");
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.EmployeePositionDictionary", b =>
@@ -938,6 +935,33 @@ namespace GamblingBuddies.Migrations
                     b.ToTable("WorkShifts");
                 });
 
+            modelBuilder.Entity("EmployeeAssignment", b =>
+                {
+                    b.HasOne("GamblingBuddies.Models.SystemUser", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GamblingBuddies.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GamblingBuddies.Models.GameSession", "GameSession")
+                        .WithMany()
+                        .HasForeignKey("GameSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("GameSession");
+                });
+
             modelBuilder.Entity("GamblingBuddies.Models.AuditLog", b =>
                 {
                     b.HasOne("GamblingBuddies.Models.SystemUser", "SystemUser")
@@ -1006,33 +1030,6 @@ namespace GamblingBuddies.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("SystemUser");
-                });
-
-            modelBuilder.Entity("GamblingBuddies.Models.EmployeeAssignment", b =>
-                {
-                    b.HasOne("GamblingBuddies.Models.SystemUser", "AssignedByUser")
-                        .WithMany()
-                        .HasForeignKey("AssignedByUserSystemUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GamblingBuddies.Models.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GamblingBuddies.Models.GameSession", "GameSession")
-                        .WithMany()
-                        .HasForeignKey("GameSessionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssignedByUser");
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("GameSession");
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Game", b =>

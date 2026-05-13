@@ -54,6 +54,66 @@
                 context.Set<RoleDictionary>().Add(employeeRole);
             }
 
+            var dealerPosition = context.Set<EmployeePositionDictionary>()
+    .FirstOrDefault(p => p.Name == "Dealer");
+
+            if (dealerPosition == null)
+            {
+                dealerPosition = new EmployeePositionDictionary
+                {
+                    Name = "Dealer",
+                    Description = "Krupier",
+                    IsActive = true
+                };
+
+                context.Set<EmployeePositionDictionary>().Add(dealerPosition);
+            }
+
+            var managerPosition = context.Set<EmployeePositionDictionary>()
+                .FirstOrDefault(p => p.Name == "Manager");
+
+            if (managerPosition == null)
+            {
+                managerPosition = new EmployeePositionDictionary
+                {
+                    Name = "Manager",
+                    Description = "Kierownik",
+                    IsActive = true
+                };
+
+                context.Set<EmployeePositionDictionary>().Add(managerPosition);
+            }
+
+            var activeEmployeeStatus = context.Set<EmployeeStatusDictionary>()
+                .FirstOrDefault(s => s.Name == "Active");
+
+            if (activeEmployeeStatus == null)
+            {
+                activeEmployeeStatus = new EmployeeStatusDictionary
+                {
+                    Name = "Active",
+                    Description = "Aktywny",
+                    IsActive = true
+                };
+
+                context.Set<EmployeeStatusDictionary>().Add(activeEmployeeStatus);
+            }
+
+            var inactiveEmployeeStatus = context.Set<EmployeeStatusDictionary>()
+                .FirstOrDefault(s => s.Name == "Inactive");
+
+            if (inactiveEmployeeStatus == null)
+            {
+                inactiveEmployeeStatus = new EmployeeStatusDictionary
+                {
+                    Name = "Inactive",
+                    Description = "Nieaktywny",
+                    IsActive = true
+                };
+
+                context.Set<EmployeeStatusDictionary>().Add(inactiveEmployeeStatus);
+            }
+
             var standardHallType = new HallTypeDictionary { Name = "Standard", Description = "Sala standardowa" };
             var vipHallType = new HallTypeDictionary { Name = "VIP", Description = "Sala VIP" };
 
@@ -71,18 +131,6 @@
 
             var cashMethod = new PaymentMethodDictionary { Name = "Cash", Description = "Gotówka" };
             var cardMethod = new PaymentMethodDictionary { Name = "Card", Description = "Karta" };
-
-            context.AddRange(
-                adminRole, managerRole, employeeRole,
-                dealerPosition, managerPosition,
-                activeEmployeeStatus, inactiveEmployeeStatus,
-                standardHallType, vipHallType,
-                cardsCategory, rouletteCategory,
-                plannedSessionStatus, finishedSessionStatus,
-                pendingReservationStatus, confirmedReservationStatus,
-                pendingPaymentStatus, paidPaymentStatus,
-                cashMethod, cardMethod
-            );
 
             context.SaveChanges();
 
@@ -309,11 +357,26 @@
                 });
             }
 
-            context.Set<Seat>().AddRange(seats);
-            context.SaveChanges();
+            for (int i = 1; i <= table3.MaxPlayers; i++)
+            {
+                seats.Add(new Seat
+                {
+                    TableId = table3.GameTableId,
+                    SeatNumber = i,
+                    IsActive = true
+                });
+            }
 
-            var seat1 = seats.First(s => s.TableId == table1.GameTableId && s.SeatNumber == 1);
-            var seat3 = seats.First(s => s.TableId == table2.GameTableId && s.SeatNumber == 1);
+            for (int i = 1; i <= table4.MaxPlayers; i++)
+            {
+                seats.Add(new Seat
+                {
+                    TableId = table4.GameTableId,
+                    SeatNumber = i,
+                    IsActive = true
+                });
+            }
+
 
             // GRY
 
@@ -489,7 +552,7 @@
                 {
                     EmployeeId = employee2.EmployeeId,
                     GameSessionId = session3.GameSessionId,
-                    AssingedByUserId = admin.SystemUserId
+                    AssignedByUserId = admin.SystemUserId
                 }
             );
 
