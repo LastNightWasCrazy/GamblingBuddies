@@ -8,7 +8,6 @@ namespace GamblingBuddies.Models
             : base(options)
         {
         }
-        //
         public DbSet<RoleDictionary> RoleDictionaries { get; set; }
         public DbSet<EmployeePositionDictionary> EmployeePositionDictionaries { get; set; }
         public DbSet<EmployeeStatusDictionary> EmployeeStatusDictionaries { get; set; }
@@ -22,6 +21,7 @@ namespace GamblingBuddies.Models
         public DbSet<ReservationStatusDictionary> ReservationStatusDictionaries { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<PaymentReport> PaymentReports { get; set; }
         public DbSet<PaymentStatusDictionary> PaymentStatuses { get; set; }
         public DbSet<PaymentMethodDictionary> PaymentMethods { get; set; }
         public DbSet<EmployeeAssignment> EmployeeAssignments { get; set; }

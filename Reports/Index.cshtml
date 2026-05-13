@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Raporty";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center" style="color: #8b0000;">Centrum raportów</h1>
+    
+    <div class="row mt-5">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header" style="background-color: #8b0000; color: white;">
+                    <h4>Raporty płatności</h4>
+                </div>
+                <div class="card-body">
+                    <p>Generuj raporty dotyczące transakcji płatniczych w kasynie.</p>
+                    <a asp-action="PaymentReport" class="btn btn-primary">Generuj raport płatności</a>
+                    <a asp-action="ReportHistory" class="btn btn-info">Historia raportów</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
