@@ -1,33 +1,26 @@
-﻿@{
-    ViewData["Title"] = "Rezerwacja";
-
-    @section Styles {
-        <link rel="stylesheet" href="~/css/Reservation.css" asp-append-version="true" />
-    }
+﻿@section Styles {
+    <link rel="stylesheet" href="~/css/Reservation.css" asp-append-version="true" />
 }
 
 <div class="MainForm">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
     <form asp-controller="Reservation" asp-action="Go" method="post">
-
-        @Html.AntiForgeryToken()
-
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">
-                @TempData["SuccessMessage"]
-            </div>
-        }
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger">
-                @TempData["ErrorMessage"]
-            </div>
-        }
 
         <div class="mb-3">
             <label class="form-label">Wybierz salę</label>
-            <select id="hallSelect" name="HallId" class="form-select" required>
+            <select id="hallSelect" name="HallId" class="form-select">
                 <option value="">-- wybierz salę --</option>
 
                 @foreach (var hall in ViewBag.Halls)
@@ -35,126 +28,98 @@
                     <option value="@hall.HallId">@hall.Name</option>
                 }
             </select>
-        </div>
 
-        <div class="mb-3">
             <label class="form-label">Wybierz grę</label>
-            <select id="gameSelect" name="GameId" class="form-select" required disabled>
+            <select id="gameSelect" name="GameId" class="form-select">
                 <option value="">-- najpierw wybierz salę --</option>
             </select>
-        </div>
 
-        <div class="mb-3">
             <label class="form-label">Czas</label>
-            <select id="sessionSelect" name="GameSessionId" class="form-select" required disabled>
+            <select id="sessionSelect" name="GameSessionId" class="form-select">
                 <option value="">-- najpierw wybierz grę --</option>
             </select>
         </div>
 
-        <div class="mb-3 text-dark">
-            <label class="form-label">Rodzaj rezerwacji</label>
-
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="ReservationType" value="Table" checked>
-                <label class="form-check-label">Cały stół</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="ReservationType" value="Seat">
-                <label class="form-check-label">Jedno miejsce przy stole</label>
-            </div>
-        </div>
-
         <div class="mb-3">
-            <label class="form-label">Ilość miejsc</label>
-            <input type="number" name="Quantity" class="form-control" min="1" value="1" required>
+            <label for="quantityInput" class="formReservation">Liczba miejsc</label>
+            <input id="quantityInput" type="number" name="Quantity" class="form-control" min="1" value="1">
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            Zarezerwuj
-        </button>
+        <button type="submit" class="btn btn-primary">Zarezerwuj</button>
 
     </form>
 </div>
 
-@section Scripts {
-    <script>
-        const hallSelect = document.getElementById("hallSelect");
-        const gameSelect = document.getElementById("gameSelect");
-        const sessionSelect = document.getElementById("sessionSelect");
+<script>
+    const hallSelect = document.getElementById("hallSelect");
+    const gameSelect = document.getElementById("gameSelect");
+    const sessionSelect = document.getElementById("sessionSelect");
+    const quantityInput = document.getElementById("quantityInput");
 
-        hallSelect.addEventListener("change", function () {
-            const hallId = this.value;
+    hallSelect.addEventListener("change", function () {
+        const hallId = this.value;
 
-            gameSelect.disabled = true;
-            sessionSelect.disabled = true;
+        gameSelect.innerHTML = '<option value="">Ładowanie...</option>';
+        sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+        quantityInput.value = 1;
+        quantityInput.removeAttribute("max");
 
-            gameSelect.innerHTML = '<option value="">Ładowanie...</option>';
+        if (!hallId) {
+            gameSelect.innerHTML = '<option value="">-- najpierw wybierz salę --</option>';
+            return;
+        }
+
+        fetch(`/Reservation/GetGamesByHall?hallId=${hallId}`)
+            .then(response => response.json())
+            .then(games => {
+                gameSelect.innerHTML = '<option value="">-- wybierz grę --</option>';
+
+                games.forEach(game => {
+                    const option = document.createElement("option");
+                    option.value = game.gameId;
+                    option.textContent = game.name;
+                    gameSelect.appendChild(option);
+                });
+            });
+    });
+
+    gameSelect.addEventListener("change", function () {
+        const hallId = hallSelect.value;
+        const gameId = this.value;
+
+        sessionSelect.innerHTML = '<option value="">Ładowanie...</option>';
+        quantityInput.value = 1;
+        quantityInput.removeAttribute("max");
+
+        if (!hallId || !gameId) {
             sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+            return;
+        }
 
-            if (!hallId) {
-                gameSelect.innerHTML = '<option value="">-- najpierw wybierz salę --</option>';
-                return;
-            }
+        fetch(`/Reservation/GetSessionsByHallAndGame?hallId=${hallId}&gameId=${gameId}`)
+            .then(response => response.json())
+            .then(sessions => {
+                sessionSelect.innerHTML = '<option value="">-- wybierz termin --</option>';
 
-            fetch(`/Reservation/GetGamesByHall?hallId=${hallId}`)
-                .then(response => response.json())
-                .then(games => {
-                    gameSelect.innerHTML = '<option value="">-- wybierz grę --</option>';
-
-                    if (games.length === 0) {
-                        gameSelect.innerHTML = '<option value="">Brak gier dla wybranej sali</option>';
-                        return;
-                    }
-
-                    games.forEach(game => {
-                        gameSelect.innerHTML += `
-                            <option value="${game.gameId}">
-                                ${game.name}
-                            </option>`;
-                    });
-
-                    gameSelect.disabled = false;
-                })
-                .catch(() => {
-                    gameSelect.innerHTML = '<option value="">Błąd ładowania gier</option>';
+                sessions.forEach(session => {
+                    const option = document.createElement("option");
+                    option.value = session.gameSessionId;
+                    option.textContent = session.text;
+                    option.dataset.availableSeats = session.availableSeats;
+                    sessionSelect.appendChild(option);
                 });
-        });
+            });
+    });
 
-        gameSelect.addEventListener("change", function () {
-            const hallId = hallSelect.value;
-            const gameId = this.value;
+    sessionSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const availableSeats = selectedOption.dataset.availableSeats;
 
-            sessionSelect.disabled = true;
-            sessionSelect.innerHTML = '<option value="">Ładowanie...</option>';
-
-            if (!hallId || !gameId) {
-                sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
-                return;
-            }
-
-            fetch(`/Reservation/GetSessionsByHallAndGame?hallId=${hallId}&gameId=${gameId}`)
-                .then(response => response.json())
-                .then(sessions => {
-                    sessionSelect.innerHTML = '<option value="">-- wybierz termin --</option>';
-
-                    if (sessions.length === 0) {
-                        sessionSelect.innerHTML = '<option value="">Brak terminów dla wybranej gry</option>';
-                        return;
-                    }
-
-                    sessions.forEach(session => {
-                        sessionSelect.innerHTML += `
-                            <option value="${session.gameSessionId}">
-                                ${session.text}
-                            </option>`;
-                    });
-
-                    sessionSelect.disabled = false;
-                })
-                .catch(() => {
-                    sessionSelect.innerHTML = '<option value="">Błąd ładowania terminów</option>';
-                });
-        });
-    </script>
-}
+        if (availableSeats) {
+            quantityInput.max = availableSeats;
+            quantityInput.value = 1;
+        } else {
+            quantityInput.removeAttribute("max");
+        }
+    });
+</script>

@@ -20,5 +20,7 @@ namespace GamblingBuddies.Models
         public GameVariant GameVariant { get; set; }
         public GameTable GameTable { get; set; }
         public SystemUser CreatedByUser { get; set; }
+
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

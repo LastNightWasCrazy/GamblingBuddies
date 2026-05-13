@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using GamblingBuddies.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace GamblingBuddies.Models
 {

@@ -54,6 +54,36 @@
                 context.Set<RoleDictionary>().Add(employeeRole);
             }
 
+            var standardHallType = new HallTypeDictionary { Name = "Standard", Description = "Sala standardowa" };
+            var vipHallType = new HallTypeDictionary { Name = "VIP", Description = "Sala VIP" };
+
+            var cardsCategory = new GameCategoryDictionary { Name = "Cards", Description = "Gry karciane" };
+            var rouletteCategory = new GameCategoryDictionary { Name = "Roulette", Description = "Ruletka" };
+
+            var plannedSessionStatus = new SessionStatusDictionary { Name = "Planned", Description = "Zaplanowana" };
+            var finishedSessionStatus = new SessionStatusDictionary { Name = "Finished", Description = "Zakończona" };
+
+            var pendingReservationStatus = new ReservationStatusDictionary { Name = "Pending", Description = "Oczekująca" };
+            var confirmedReservationStatus = new ReservationStatusDictionary { Name = "Confirmed", Description = "Potwierdzona" };
+
+            var pendingPaymentStatus = new PaymentStatusDictionary { Name = "Pending", Description = "Oczekująca" };
+            var paidPaymentStatus = new PaymentStatusDictionary { Name = "Paid", Description = "Opłacona" };
+
+            var cashMethod = new PaymentMethodDictionary { Name = "Cash", Description = "Gotówka" };
+            var cardMethod = new PaymentMethodDictionary { Name = "Card", Description = "Karta" };
+
+            context.AddRange(
+                adminRole, managerRole, employeeRole,
+                dealerPosition, managerPosition,
+                activeEmployeeStatus, inactiveEmployeeStatus,
+                standardHallType, vipHallType,
+                cardsCategory, rouletteCategory,
+                plannedSessionStatus, finishedSessionStatus,
+                pendingReservationStatus, confirmedReservationStatus,
+                pendingPaymentStatus, paidPaymentStatus,
+                cashMethod, cardMethod
+            );
+
             context.SaveChanges();
 
             var admin = context.Set<SystemUser>().FirstOrDefault(u => u.Login == "admin");
@@ -251,18 +281,41 @@
 
             context.Set<GameTable>().AddRange(table1, table2, table3, table4);
             context.SaveChanges();
+            // MIEJSCA
 
-            context.Set<Seat>().AddRange(
-                new Seat { TableId = table1.GameTableId, SeatNumber = 1 },
-                new Seat { TableId = table1.GameTableId, SeatNumber = 2 },
-                new Seat { TableId = table1.GameTableId, SeatNumber = 3 },
-                new Seat { TableId = table2.GameTableId, SeatNumber = 1 },
-                new Seat { TableId = table2.GameTableId, SeatNumber = 2 },
-                new Seat { TableId = table3.GameTableId, SeatNumber = 1 },
-                new Seat { TableId = table3.GameTableId, SeatNumber = 2 },
-                new Seat { TableId = table4.GameTableId, SeatNumber = 1 },
-                new Seat { TableId = table4.GameTableId, SeatNumber = 2 }
-            );
+            context.Set<ReservationSeat>().RemoveRange(context.Set<ReservationSeat>());
+            context.Set<Seat>().RemoveRange(context.Set<Seat>());
+            context.SaveChanges();
+
+            var seats = new List<Seat>();
+
+            for (int i = 1; i <= table1.MaxPlayers; i++)
+            {
+                seats.Add(new Seat
+                {
+                    TableId = table1.GameTableId,
+                    SeatNumber = i,
+                    IsActive = true
+                });
+            }
+
+            for (int i = 1; i <= table2.MaxPlayers; i++)
+            {
+                seats.Add(new Seat
+                {
+                    TableId = table2.GameTableId,
+                    SeatNumber = i,
+                    IsActive = true
+                });
+            }
+
+            context.Set<Seat>().AddRange(seats);
+            context.SaveChanges();
+
+            var seat1 = seats.First(s => s.TableId == table1.GameTableId && s.SeatNumber == 1);
+            var seat3 = seats.First(s => s.TableId == table2.GameTableId && s.SeatNumber == 1);
+
+            // GRY
 
             var poker = new Game
             {
@@ -430,7 +483,7 @@
                 {
                     EmployeeId = employee1.EmployeeId,
                     GameSessionId = session1.GameSessionId,
-                    AssingedByUserId = admin.SystemUserId
+                    AssignedByUserId = admin.SystemUserId
                 },
                 new EmployeeAssignment
                 {

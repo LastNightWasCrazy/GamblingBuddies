@@ -15,6 +15,8 @@ namespace GamblingBuddies.Models
 
         public int SeatNumber { get; set; }
 
+        public bool IsActive { get; set; }
+
         // relacja do ReservationSeat
         public ICollection<ReservationSeat> ReservationSeats { get; set; }
     }
