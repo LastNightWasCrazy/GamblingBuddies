@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamblingBuddies.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260513004310_AddIsActiveToSeatAndGameTable")]
-    partial class AddIsActiveToSeatAndGameTable
+    [Migration("20260513143914_AddPaymentReports")]
+    partial class AddPaymentReports
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -534,6 +534,55 @@ namespace GamblingBuddies.Migrations
                     b.HasKey("PaymentMethodId");
 
                     b.ToTable("PaymentMethods");
+                });
+
+            modelBuilder.Entity("GamblingBuddies.Models.PaymentReport", b =>
+                {
+                    b.Property<int>("PaymentReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentReportId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FiltersApplied")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GeneratedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GeneratedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PdfFilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TransactionsCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("PaymentReportId");
+
+                    b.HasIndex("GeneratedByUserId");
+
+                    b.ToTable("PaymentReports");
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.PaymentStatusDictionary", b =>
@@ -1130,6 +1179,17 @@ namespace GamblingBuddies.Migrations
                     b.Navigation("PaymentStatus");
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("GamblingBuddies.Models.PaymentReport", b =>
+                {
+                    b.HasOne("GamblingBuddies.Models.SystemUser", "GeneratedByUser")
+                        .WithMany()
+                        .HasForeignKey("GeneratedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GeneratedByUser");
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.PaymentTransaction", b =>

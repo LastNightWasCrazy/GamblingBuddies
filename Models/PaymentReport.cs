@@ -14,13 +14,10 @@ namespace GamblingBuddies.Models
 
         public string Description { get; set; }
 
-        [Required]
         public DateTime GeneratedDate { get; set; }
 
-        [Required]
         public DateTime? StartDate { get; set; }
 
-        [Required]
         public DateTime? EndDate { get; set; }
 
         public decimal TotalAmount { get; set; }
@@ -34,6 +31,6 @@ namespace GamblingBuddies.Models
         [ForeignKey("GeneratedByUserId")]
         public SystemUser GeneratedByUser { get; set; }
 
-        public string PdfFilePath { get; set; }
+        public string? PdfFilePath { get; set; }
     }
 }

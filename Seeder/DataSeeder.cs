@@ -376,7 +376,8 @@
                     IsActive = true
                 });
             }
-
+            context.Set<Seat>().AddRange(seats);
+            context.SaveChanges();
 
             // GRY
 

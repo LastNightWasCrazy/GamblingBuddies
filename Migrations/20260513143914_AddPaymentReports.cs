@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GamblingBuddies.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIsActiveToSeatAndGameTable : Migration
+    public partial class AddPaymentReports : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -291,6 +291,34 @@ namespace GamblingBuddies.Migrations
                     table.ForeignKey(
                         name: "FK_Employees_SystemUsers_SystemUserId",
                         column: x => x.SystemUserId,
+                        principalTable: "SystemUsers",
+                        principalColumn: "SystemUserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentReports",
+                columns: table => new
+                {
+                    PaymentReportId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReportName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GeneratedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TransactionsCount = table.Column<int>(type: "int", nullable: false),
+                    FiltersApplied = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GeneratedByUserId = table.Column<int>(type: "int", nullable: false),
+                    PdfFilePath = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentReports", x => x.PaymentReportId);
+                    table.ForeignKey(
+                        name: "FK_PaymentReports_SystemUsers_GeneratedByUserId",
+                        column: x => x.GeneratedByUserId,
                         principalTable: "SystemUsers",
                         principalColumn: "SystemUserId",
                         onDelete: ReferentialAction.Restrict);
@@ -834,6 +862,11 @@ namespace GamblingBuddies.Migrations
                 column: "HallTypeDictionaryHallTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentReports_GeneratedByUserId",
+                table: "PaymentReports",
+                column: "GeneratedByUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payments_PaymentMethodId",
                 table: "Payments",
                 column: "PaymentMethodId");
@@ -940,6 +973,9 @@ namespace GamblingBuddies.Migrations
 
             migrationBuilder.DropTable(
                 name: "EmployeeAssignments");
+
+            migrationBuilder.DropTable(
+                name: "PaymentReports");
 
             migrationBuilder.DropTable(
                 name: "PaymentTransactions");
