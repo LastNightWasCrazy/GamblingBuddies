@@ -1,0 +1,143 @@
+﻿@model GamblingBuddies.Models.Reservation
+
+@{
+    ViewData["Title"] = "Szczegóły rezerwacji";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header" style="background-color: #8b0000; color: white;">
+            <h3>Szczegóły rezerwacji #@Model.ReservationId</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Informacje o rezerwacji</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">ID rezerwacji</dt>
+                        <dd class="col-sm-8">@Model.ReservationId</dd>
+
+                        <dt class="col-sm-4">Data rezerwacji</dt>
+                        <dd class="col-sm-8">@Model.ReservedAt.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge" style="background-color: #8b0000;">@Model.ReservationStatus?.Name</span>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h4>Informacje o graczu</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">ID gracza</dt>
+                        <dd class="col-sm-8">@Model.Player?.PlayerId</dd>
+
+                        <dt class="col-sm-4">Imię i nazwisko</dt>
+                        <dd class="col-sm-8">@Model.Player?.FirstName @Model.Player?.LastName</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@Model.Player?.Email</dd>
+
+                        <dt class="col-sm-4">Telefon</dt>
+                        <dd class="col-sm-8">@Model.Player?.Phone</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Informacje o sesji gry</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Sesja ID</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.GameSessionId</dd>
+
+                        <dt class="col-sm-4">Gra</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.GameVariant?.Game?.Name</dd>
+
+                        <dt class="col-sm-4">Wariant</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.GameVariant?.Name</dd>
+
+                        <dt class="col-sm-4">Data rozpoczęcia</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.StartAt.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                        <dt class="col-sm-4">Data zakończenia</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.EndAt.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                        <dt class="col-sm-4">Stół</dt>
+                        <dd class="col-sm-8">Stół #@Model.GameSession?.GameTable?.TableNumber</dd>
+
+                        <dt class="col-sm-4">Sala</dt>
+                        <dd class="col-sm-8">@Model.GameSession?.GameTable?.Hall?.Name</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h4>Zajęte miejsca</h4>
+                    @if (Model.ReservationSeats != null && Model.ReservationSeats.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var seat in Model.ReservationSeats)
+                            {
+                                <li class="list-group-item" style="background-color: #3a0000; color: white;">
+                                    Miejsce #@seat.Seat?.SeatNumber
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>Brak zajętych miejsc</p>
+                    }
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-12">
+                    <h4>Płatności</h4>
+                    @if (Model.Payments != null && Model.Payments.Any())
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID płatności</th>
+                                    <th>Kwota</th>
+                                    <th>Metoda</th>
+                                    <th>Status</th>
+                                    <th>Data utworzenia</th>
+                                    <th>Data zapłaty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@payment.PaymentId</td>
+                                        <td>@payment.Amount.ToString("C")</td>
+                                        <td>@payment.PaymentMethod?.Name</td>
+                                        <td>@payment.PaymentStatus?.Name</td>
+                                        <td>@payment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@(payment.PaidAt?.ToString("yyyy-MM-dd HH:mm") ?? "Brak")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Brak płatności dla tej rezerwacji</p>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a asp-action="Edit" asp-route-id="@Model.ReservationId" class="btn btn-primary">Edytuj</a>
+                <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+            </div>
+        </div>
+    </div>
+</div>

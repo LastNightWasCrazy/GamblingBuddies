@@ -11,20 +11,6 @@
         <span class="badge bg-secondary fs-6">Panel administracyjny</span>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
@@ -33,10 +19,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Gracz</th>
-                        <th>Sala</th>
-                        <th>Stół</th>
                         <th>Sesja gry</th>
-                        <th>Miejsca</th>
                         <th>Status</th>
                         <th>Data rezerwacji</th>
                         <th>Akcje</th>
@@ -46,10 +29,6 @@
                 <tbody>
                     @foreach (var reservation in Model)
                     {
-                        var statusName = reservation.ReservationStatus?.Name ?? "Brak";
-                        var isConfirmed = statusName == "Confirmed";
-                        var isCancelled = statusName == "Cancelled";
-
                         <tr>
                             <td>@reservation.ReservationId</td>
 
@@ -58,75 +37,31 @@
                             </td>
 
                             <td>
-                                @reservation.GameSession?.GameTable?.Hall?.Name
-                            </td>
-
-                            <td>
-                                @reservation.GameSession?.GameTable?.TableNumber
-                            </td>
-
-                            <td>
                                 @reservation.GameSession?.GameVariant?.Name
                             </td>
 
                             <td>
-                                @(reservation.ReservationSeats?.Count ?? 0)
-                            </td>
-
-                            <td>
-                                @if (isConfirmed)
-                                {
-                                    <span class="badge bg-success">Zatwierdzona</span>
-                                }
-                                else if (isCancelled)
-                                {
-                                    <span class="badge bg-danger">Anulowana</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark">@statusName</span>
-                                }
+                                @reservation.ReservationStatus?.Name
                             </td>
 
                             <td>
                                 @reservation.ReservedAt.ToString("yyyy-MM-dd HH:mm")
                             </td>
 
-                            <td class="d-flex gap-2 flex-wrap">
-
-                                @if (!isConfirmed && !isCancelled)
-                                {
-                                    <form asp-controller="Reservations"
-                                          asp-action="Confirm"
-                                          asp-route-id="@reservation.ReservationId"
-                                          method="post">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            Zatwierdź
-                                        </button>
-                                    </form>
-                                }
-
-                                @if (!isCancelled)
-                                {
-                                    <form asp-controller="Reservations"
-                                          asp-action="Cancel"
-                                          asp-route-id="@reservation.ReservationId"
-                                          method="post">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            Anuluj
-                                        </button>
-                                    </form>
-                                }
+                            <td>
+                                <a class="btn btn-sm btn-primary"
+                                   asp-controller="Reservations"
+                                   asp-action="Details"
+                                   asp-route-id="@reservation.ReservationId">
+                                    Szczegóły
+                                </a>
 
                                 <a class="btn btn-sm btn-warning"
                                    asp-controller="Reservations"
-                                   asp-action="ChangeTable"
+                                   asp-action="Edit"
                                    asp-route-id="@reservation.ReservationId">
-                                    Zmień stół
+                                    Edytuj
                                 </a>
-
                             </td>
                         </tr>
                     }

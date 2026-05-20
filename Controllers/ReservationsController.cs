@@ -19,76 +19,136 @@ namespace GamblingBuddies.Controllers
         {
             var reservations = _context.Reservations
                 .Include(r => r.Player)
-                .Include(r => r.ReservationStatus)
                 .Include(r => r.GameSession)
                     .ThenInclude(gs => gs.GameVariant)
-                .Include(r => r.GameSession)
-                    .ThenInclude(gs => gs.GameTable)
-                        .ThenInclude(gt => gt.Hall)
-                .Include(r => r.ReservationSeats)
-                    .ThenInclude(rs => rs.Seat)
-                .OrderByDescending(r => r.ReservedAt)
+                .Include(r => r.ReservationStatus)
                 .ToList();
 
             return View(reservations);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Confirm(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var reservation = _context.Reservations
-                .FirstOrDefault(r => r.ReservationId == id);
-
-            if (reservation == null)
-                return NotFound();
-
-            var confirmedStatus = _context.ReservationStatusDictionaries
-                .FirstOrDefault(s => s.Name == "Confirmed");
-
-            if (confirmedStatus == null)
+            if (id == null)
             {
-                TempData["ErrorMessage"] = "Brak statusu Confirmed w bazie.";
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            reservation.ReservationStatusId = confirmedStatus.ReservationStatusId;
-            _context.SaveChanges();
+            var reservation = await _context.Reservations
+                .Include(r => r.Player)
+                .Include(r => r.GameSession)
+                    .ThenInclude(gs => gs.GameVariant)
+                        .ThenInclude(gv => gv.Game)
+                .Include(r => r.GameSession)
+                    .ThenInclude(gs => gs.GameTable)
+                        .ThenInclude(gt => gt.Hall)
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.ReservationSeats)
+                    .ThenInclude(rs => rs.Seat)
+                .Include(r => r.Payments)
+                    .ThenInclude(p => p.PaymentMethod)
+                .Include(r => r.Payments)
+                    .ThenInclude(p => p.PaymentStatus)
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
 
-            TempData["SuccessMessage"] = "Rezerwacja została zatwierdzona.";
-            return RedirectToAction("Index");
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            return View(reservation);
+        }
+
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var reservation = await _context.Reservations
+                .Include(r => r.Player)
+                .Include(r => r.GameSession)
+                .Include(r => r.ReservationStatus)
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            await LoadViewBagData();
+
+            return View(reservation);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Cancel(int id)
+        public async Task<IActionResult> Edit(int id, Reservation reservation)
         {
-            var reservation = _context.Reservations
-                .FirstOrDefault(r => r.ReservationId == id);
-
-            if (reservation == null)
-                return NotFound();
-
-            var cancelledStatus = _context.ReservationStatusDictionaries
-                .FirstOrDefault(s => s.Name == "Cancelled");
-
-            if (cancelledStatus == null)
+            if (id != reservation.ReservationId)
             {
-                cancelledStatus = new ReservationStatusDictionary
-                {
-                    Name = "Cancelled",
-                    Description = "Anulowana"
-                };
-
-                _context.ReservationStatusDictionaries.Add(cancelledStatus);
-                _context.SaveChanges();
+                return NotFound();
             }
 
-            reservation.ReservationStatusId = cancelledStatus.ReservationStatusId;
-            _context.SaveChanges();
+            if (!ModelState.IsValid)
+            {
+                await LoadViewBagData();
+                return View(reservation);
+            }
 
-            TempData["SuccessMessage"] = "Rezerwacja została anulowana.";
-            return RedirectToAction("Index");
+            try
+            {
+                var existingReservation = await _context.Reservations.FindAsync(id);
+                if (existingReservation == null)
+                {
+                    return NotFound();
+                }
+
+                existingReservation.PlayerId = reservation.PlayerId;
+                existingReservation.GameSessionId = reservation.GameSessionId;
+                existingReservation.ReservationStatusId = reservation.ReservationStatusId;
+                existingReservation.ReservedAt = reservation.ReservedAt;
+
+                _context.Update(existingReservation);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Rezerwacja została zaktualizowana.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ReservationExists(reservation.ReservationId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Wystąpił błąd konfliktu podczas zapisywania. Spróbuj ponownie.");
+                    await LoadViewBagData();
+                    return View(reservation);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Wystąpił błąd: {ex.Message}");
+                await LoadViewBagData();
+                return View(reservation);
+            }
+        }
+
+        private async Task LoadViewBagData()
+        {
+            ViewBag.Players = await _context.Players.ToListAsync();
+            ViewBag.GameSessions = await _context.GameSessions
+                .Include(gs => gs.GameVariant)
+                    .ThenInclude(gv => gv.Game)
+                .ToListAsync();
+            ViewBag.ReservationStatuses = await _context.ReservationStatusDictionaries.ToListAsync();
+        }
+
+        private bool ReservationExists(int id)
+        {
+            return _context.Reservations.Any(e => e.ReservationId == id);
         }
     }
 }

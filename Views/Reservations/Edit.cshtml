@@ -1,0 +1,117 @@
+﻿@model GamblingBuddies.Models.Reservation
+
+@{
+    ViewData["Title"] = "Edycja rezerwacji";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header" style="background-color: #8b0000; color: white;">
+                    <h3>Edycja rezerwacji #@Model.ReservationId</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReservationId" />
+
+                        <div class="form-group mb-3">
+                            <label asp-for="PlayerId" class="form-label">Gracz</label>
+                            <select asp-for="PlayerId" class="form-control">
+                                <option value="">-- Wybierz gracza --</option>
+                                @if (ViewBag.Players != null)
+                                {
+                                    foreach (var player in ViewBag.Players)
+                                    {
+                                        if (player.PlayerId == Model.PlayerId)
+                                        {
+                                            <option value="@player.PlayerId" selected>@player.FirstName @player.LastName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@player.PlayerId">@player.FirstName @player.LastName</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="PlayerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="GameSessionId" class="form-label">Sesja gry</label>
+                            <select asp-for="GameSessionId" class="form-control">
+                                <option value="">-- Wybierz sesję --</option>
+                                @if (ViewBag.GameSessions != null)
+                                {
+                                    foreach (var session in ViewBag.GameSessions)
+                                    {
+                                        string sessionText = $"ID {session.GameSessionId}: {session.GameVariant?.Game?.Name} - {session.GameVariant?.Name} ({session.StartAt:yyyy-MM-dd HH:mm})";
+                                        if (session.GameSessionId == Model.GameSessionId)
+                                        {
+                                            <option value="@session.GameSessionId" selected>@sessionText</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@session.GameSessionId">@sessionText</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="GameSessionId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="ReservationStatusId" class="form-label">Status</label>
+                            <select asp-for="ReservationStatusId" class="form-control">
+                                <option value="">-- Wybierz status --</option>
+                                @if (ViewBag.ReservationStatuses != null)
+                                {
+                                    foreach (var status in ViewBag.ReservationStatuses)
+                                    {
+                                        if (status.ReservationStatusId == Model.ReservationStatusId)
+                                        {
+                                            <option value="@status.ReservationStatusId" selected>@status.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@status.ReservationStatusId">@status.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ReservationStatusId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="ReservedAt" class="form-label">Data rezerwacji</label>
+                            <input asp-for="ReservedAt" class="form-control" type="datetime-local" />
+                            <span asp-validation-for="ReservedAt" class="text-danger"></span>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success">Zapisz zmiany</button>
+                            <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
