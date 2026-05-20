@@ -1,0 +1,117 @@
+﻿@model GamblingBuddies.Models.GameTable
+
+@{
+    ViewData["Title"] = "Szczegóły stołu";
+}
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">Szczegóły stołu @Model.TableNumber</h1>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <p><strong>Sala:</strong> @Model.Hall?.Name</p>
+            <p><strong>Minimalna liczba graczy:</strong> @Model.MinPlayers</p>
+            <p><strong>Maksymalna liczba graczy:</strong> @Model.MaxPlayers</p>
+            <p><strong>Zdefiniowane miejsca przy stole:</strong> @(Model.Seats?.Count ?? 0)</p>
+            <p class="text-light opacity-75">
+                Maksymalna liczba graczy to limit organizacyjny stołu,
+                a zdefiniowane miejsca to konkretne miejsca zapisane w bazie.
+            </p>
+            <p>
+                <strong>Status:</strong>
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Aktywny</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Nieaktywny</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <h3>Sesje przy tym stole</h3>
+
+    <table class="table table-dark table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID sesji</th>
+                <th>Gra</th>
+                <th>Wariant</th>
+                <th>Start</th>
+                <th>Koniec</th>
+                <th>Zarezerwowane</th>
+                <th>Wolne</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in Model.GameSessions.OrderByDescending(s => s.StartAt))
+            {
+                var reservedSeats = session.Reservations?
+                .SelectMany(r => r.ReservationSeats ?? new List<GamblingBuddies.Models.ReservationSeat>())
+                .Count() ?? 0;
+
+                var definedSeats = Model.Seats?.Count ?? 0;
+                var freeSeats = definedSeats - reservedSeats;
+
+                <tr>
+                    <td>@session.GameSessionId</td>
+                    <td>@session.GameVariant?.Game?.Name</td>
+                    <td>@session.GameVariant?.Name</td>
+                    <td>@session.StartAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@session.EndAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@reservedSeats</td>
+                    <td>@freeSeats</td>
+                    <td>
+                        @{
+                            var now = DateTime.Now;
+
+                            var reservations = session.Reservations ?? new List<GamblingBuddies.Models.Reservation>();
+
+                            var hasReservations = reservations.Any();
+
+                            var allReservationsCancelled = hasReservations &&
+                            reservations.All(r => r.ReservationStatus != null &&
+                            r.ReservationStatus.Name == "Cancelled");
+
+                            string sessionStatusName;
+                            string sessionStatusClass;
+
+                            if (allReservationsCancelled)
+                            {
+                                sessionStatusName = "Cancelled";
+                                sessionStatusClass = "bg-danger";
+                            }
+                            else if (now < session.StartAt)
+                            {
+                                sessionStatusName = "Planned";
+                                sessionStatusClass = "bg-info text-dark";
+                            }
+                            else if (now >= session.StartAt && now <= session.EndAt)
+                            {
+                                sessionStatusName = "Active";
+                                sessionStatusClass = "bg-success";
+                            }
+                            else
+                            {
+                                sessionStatusName = "Finished";
+                                sessionStatusClass = "bg-secondary";
+                            }
+                        }
+
+                        <span class="badge @sessionStatusClass">
+                            @sessionStatusName
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="GameTables" asp-action="Index" class="btn btn-secondary">
+        Wróć
+    </a>
+</div>

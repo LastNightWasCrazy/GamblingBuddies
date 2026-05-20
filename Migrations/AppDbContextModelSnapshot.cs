@@ -50,7 +50,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("GameSessionId");
 
-                    b.ToTable("EmployeeAssignments");
+                    b.ToTable("EmployeeAssignments", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.AuditLog", b =>
@@ -90,7 +90,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("SystemUserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Document", b =>
@@ -129,7 +129,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("ReservationId");
 
-                    b.ToTable("Documents");
+                    b.ToTable("Documents", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.DocumentFile", b =>
@@ -165,7 +165,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("DocumentId");
 
-                    b.ToTable("DocumentFiles");
+                    b.ToTable("DocumentFiles", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Employee", b =>
@@ -214,7 +214,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("SystemUserId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.EmployeePositionDictionary", b =>
@@ -238,7 +238,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("EmployeePositionDictionaryId");
 
-                    b.ToTable("EmployeePositionDictionaries");
+                    b.ToTable("EmployeePositionDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.EmployeeStatusDictionary", b =>
@@ -262,7 +262,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("EmployeeStatusDictionaryId");
 
-                    b.ToTable("EmployeeStatusDictionaries");
+                    b.ToTable("EmployeeStatusDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Game", b =>
@@ -291,7 +291,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("GameCategoryId");
 
-                    b.ToTable("Games");
+                    b.ToTable("Games", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.GameCategoryDictionary", b =>
@@ -312,7 +312,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("GameCategoryId");
 
-                    b.ToTable("GameCategoryDictionaries");
+                    b.ToTable("GameCategoryDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.GameSession", b =>
@@ -354,7 +354,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("SessionStatusDictionarySessionStatusId");
 
-                    b.ToTable("GameSessions");
+                    b.ToTable("GameSessions", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.GameTable", b =>
@@ -384,7 +384,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("HallId");
 
-                    b.ToTable("GameTables");
+                    b.ToTable("GameTables", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.GameVariant", b =>
@@ -419,7 +419,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("GameVariants");
+                    b.ToTable("GameVariants", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Hall", b =>
@@ -451,7 +451,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("HallTypeDictionaryHallTypeId");
 
-                    b.ToTable("Halls");
+                    b.ToTable("Halls", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.HallTypeDictionary", b =>
@@ -472,7 +472,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("HallTypeId");
 
-                    b.ToTable("HallTypeDictionaries");
+                    b.ToTable("HallTypeDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Payment", b =>
@@ -509,7 +509,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("ReservationId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.PaymentMethodDictionary", b =>
@@ -530,7 +530,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("PaymentMethodId");
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("PaymentMethods", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.PaymentStatusDictionary", b =>
@@ -551,7 +551,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("PaymentStatusId");
 
-                    b.ToTable("PaymentStatuses");
+                    b.ToTable("PaymentStatuses", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.PaymentTransaction", b =>
@@ -584,7 +584,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("PaymentTransactions");
+                    b.ToTable("PaymentTransactions", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Player", b =>
@@ -616,7 +616,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("PlayerId");
 
-                    b.ToTable("Players");
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.ReportDefinition", b =>
@@ -645,7 +645,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.ToTable("ReportDefinitions");
+                    b.ToTable("ReportDefinitions", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.ReportExecution", b =>
@@ -675,7 +675,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("ReportDefinitionId");
 
-                    b.ToTable("ReportExecutions");
+                    b.ToTable("ReportExecutions", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Reservation", b =>
@@ -706,7 +706,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("ReservationStatusId");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.ReservationSeat", b =>
@@ -734,7 +734,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("SeatId");
 
-                    b.ToTable("ReservationSeats");
+                    b.ToTable("ReservationSeats", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.ReservationStatusDictionary", b =>
@@ -755,7 +755,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("ReservationStatusId");
 
-                    b.ToTable("ReservationStatusDictionaries");
+                    b.ToTable("ReservationStatusDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Role", b =>
@@ -772,7 +772,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.RoleDictionary", b =>
@@ -796,7 +796,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("RoleDictionaryId");
 
-                    b.ToTable("RoleDictionaries");
+                    b.ToTable("RoleDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.Seat", b =>
@@ -820,7 +820,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("Seats");
+                    b.ToTable("Seats", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.SessionStatusDictionary", b =>
@@ -841,7 +841,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("SessionStatusId");
 
-                    b.ToTable("SessionStatusDictionaries");
+                    b.ToTable("SessionStatusDictionaries", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.SystemUser", b =>
@@ -872,7 +872,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasKey("SystemUserId");
 
-                    b.ToTable("SystemUsers");
+                    b.ToTable("SystemUsers", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.UserRole", b =>
@@ -900,7 +900,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("SystemUserId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.WorkShift", b =>
@@ -929,7 +929,7 @@ namespace GamblingBuddies.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("WorkShifts");
+                    b.ToTable("WorkShifts", (string)null);
                 });
 
             modelBuilder.Entity("EmployeeAssignment", b =>

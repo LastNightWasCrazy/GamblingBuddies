@@ -5,62 +5,82 @@
 <div class="MainForm">
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success">
-            @TempData["Success"]
-        </div>
+        <div class="alert alert-success">@TempData["Success"]</div>
     }
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">
-            @TempData["Error"]
-        </div>
+        <div class="alert alert-danger">@TempData["Error"]</div>
     }
+
     <form asp-controller="Reservation" asp-action="Go" method="post">
+        @Html.AntiForgeryToken()
 
         <div class="mb-3">
             <label class="form-label">Wybierz salę</label>
-            <select id="hallSelect" name="HallId" class="form-select">
+            <select id="hallSelect" name="HallId" class="form-select" required>
                 <option value="">-- wybierz salę --</option>
-
                 @foreach (var hall in ViewBag.Halls)
                 {
                     <option value="@hall.HallId">@hall.Name</option>
                 }
             </select>
+        </div>
 
+        <div class="mb-3">
             <label class="form-label">Wybierz grę</label>
-            <select id="gameSelect" name="GameId" class="form-select">
+            <select id="gameSelect" name="GameId" class="form-select" required disabled>
                 <option value="">-- najpierw wybierz salę --</option>
             </select>
+        </div>
 
-            <label class="form-label">Czas</label>
-            <select id="sessionSelect" name="GameSessionId" class="form-select">
+        <div class="mb-3">
+            <label class="form-label">Wybierz stół</label>
+            <select id="tableSelect" name="GameTableId" class="form-select" required disabled>
                 <option value="">-- najpierw wybierz grę --</option>
             </select>
         </div>
 
         <div class="mb-3">
+            <label class="form-label">Data rezerwacji</label>
+            <input id="dateInput" type="date" name="ReservationDate" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Godzina rozpoczęcia</label>
+            <input id="timeInput" type="time" name="ReservationTime" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
             <label for="quantityInput" class="formReservation">Liczba miejsc</label>
-            <input id="quantityInput" type="number" name="Quantity" class="form-control" min="1" value="1">
+            <input id="quantityInput" type="number" name="Quantity" class="form-control" min="1" value="1" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Zarezerwuj</button>
-
     </form>
 </div>
 
 <script>
     const hallSelect = document.getElementById("hallSelect");
     const gameSelect = document.getElementById("gameSelect");
-    const sessionSelect = document.getElementById("sessionSelect");
+    const tableSelect = document.getElementById("tableSelect");
     const quantityInput = document.getElementById("quantityInput");
+    const dateInput = document.getElementById("dateInput");
+    const timeInput = document.getElementById("timeInput");
+
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
+    dateInput.min = todayString;
 
     hallSelect.addEventListener("change", function () {
         const hallId = this.value;
 
+        gameSelect.disabled = true;
+        tableSelect.disabled = true;
+
         gameSelect.innerHTML = '<option value="">Ładowanie...</option>';
-        sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+        tableSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+
         quantityInput.value = 1;
         quantityInput.removeAttribute("max");
 
@@ -74,12 +94,19 @@
             .then(games => {
                 gameSelect.innerHTML = '<option value="">-- wybierz grę --</option>';
 
+                if (games.length === 0) {
+                    gameSelect.innerHTML = '<option value="">Brak gier dla wybranej sali</option>';
+                    return;
+                }
+
                 games.forEach(game => {
                     const option = document.createElement("option");
                     option.value = game.gameId;
                     option.textContent = game.name;
                     gameSelect.appendChild(option);
                 });
+
+                gameSelect.disabled = false;
             });
     });
 
@@ -87,39 +114,59 @@
         const hallId = hallSelect.value;
         const gameId = this.value;
 
-        sessionSelect.innerHTML = '<option value="">Ładowanie...</option>';
+        tableSelect.disabled = true;
+        tableSelect.innerHTML = '<option value="">Ładowanie...</option>';
         quantityInput.value = 1;
         quantityInput.removeAttribute("max");
 
         if (!hallId || !gameId) {
-            sessionSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
+            tableSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
             return;
         }
 
-        fetch(`/Reservation/GetSessionsByHallAndGame?hallId=${hallId}&gameId=${gameId}`)
+        fetch(`/Reservation/GetTablesByHallAndGame?hallId=${hallId}&gameId=${gameId}`)
             .then(response => response.json())
-            .then(sessions => {
-                sessionSelect.innerHTML = '<option value="">-- wybierz termin --</option>';
+            .then(tables => {
+                tableSelect.innerHTML = '<option value="">-- wybierz stół --</option>';
 
-                sessions.forEach(session => {
+                if (tables.length === 0) {
+                    tableSelect.innerHTML = '<option value="">Brak stołów dla wybranej gry</option>';
+                    return;
+                }
+
+                tables.forEach(table => {
                     const option = document.createElement("option");
-                    option.value = session.gameSessionId;
-                    option.textContent = session.text;
-                    option.dataset.availableSeats = session.availableSeats;
-                    sessionSelect.appendChild(option);
+                    option.value = table.gameTableId;
+                    option.textContent = table.text;
+                    option.dataset.maxPlayers = table.maxPlayers;
+                    tableSelect.appendChild(option);
                 });
+
+                tableSelect.disabled = false;
             });
     });
 
-    sessionSelect.addEventListener("change", function () {
+    tableSelect.addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
-        const availableSeats = selectedOption.dataset.availableSeats;
+        const maxPlayers = selectedOption.dataset.maxPlayers;
 
-        if (availableSeats) {
-            quantityInput.max = availableSeats;
+        if (maxPlayers) {
+            quantityInput.max = maxPlayers;
             quantityInput.value = 1;
         } else {
             quantityInput.removeAttribute("max");
+        }
+    });
+
+    dateInput.addEventListener("change", function () {
+        const selectedDate = this.value;
+
+        if (selectedDate === todayString) {
+            const hours = String(today.getHours()).padStart(2, "0");
+            const minutes = String(today.getMinutes()).padStart(2, "0");
+            timeInput.min = `${hours}:${minutes}`;
+        } else {
+            timeInput.removeAttribute("min");
         }
     });
 </script>

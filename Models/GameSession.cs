@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Xml;
 
 namespace GamblingBuddies.Models
 {
@@ -19,6 +18,9 @@ namespace GamblingBuddies.Models
 
         public GameVariant GameVariant { get; set; }
         public GameTable GameTable { get; set; }
+
+        public SessionStatusDictionary SessionStatus { get; set; }
+
         public SystemUser CreatedByUser { get; set; }
 
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
