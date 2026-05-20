@@ -149,6 +149,8 @@
                 context.SaveChanges();
             }
 
+
+
             var manager = context.Set<SystemUser>().FirstOrDefault(u => u.Login == "manager");
             if (manager == null)
             {
@@ -161,6 +163,23 @@
                     CreatedAt = DateTime.Now
                 };
                 context.Set<SystemUser>().Add(manager);
+                context.SaveChanges();
+            }
+
+            var employeeUser = context.Set<SystemUser>().FirstOrDefault(u => u.Login == "employee");
+
+            if (employeeUser == null)
+            {
+                employeeUser = new SystemUser
+                {
+                    Login = "employee",
+                    Email = "employee@gamblingbuddies.local",
+                    PasswordHash = "employee123",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                context.Set<SystemUser>().Add(employeeUser);
                 context.SaveChanges();
             }
 
@@ -183,6 +202,17 @@
                 {
                     SystemUserId = manager.SystemUserId,
                     RoleDictionaryId = managerRole.RoleDictionaryId
+                });
+            }
+
+            if (!context.Set<UserRole>().Any(ur =>
+            ur.SystemUserId == employeeUser.SystemUserId &&
+            ur.RoleDictionaryId == employeeRole.RoleDictionaryId))
+            {
+                context.Set<UserRole>().Add(new UserRole
+                {
+                    SystemUserId = employeeUser.SystemUserId,
+                    RoleDictionaryId = employeeRole.RoleDictionaryId
                 });
             }
 
@@ -218,6 +248,7 @@
 
             var admin = context.Set<SystemUser>().First(u => u.Login == "admin");
             var manager = context.Set<SystemUser>().First(u => u.Login == "manager");
+            var employeeUser = context.Set<SystemUser>().First(u => u.Login == "employee");
 
             var employee1 = new Employee
             {
@@ -232,7 +263,7 @@
 
             var employee2 = new Employee
             {
-                SystemUserId = null,
+                SystemUserId = employeeUser.SystemUserId,
                 FirstName = "Anna",
                 LastName = "Nowak",
                 Phone = "500300400",
@@ -573,6 +604,7 @@
                     CreatedByUserId = admin.SystemUserId
                 }
             );
+            context.SaveChanges();
 
             /*var reportDefinition = new ReportDefinition
             {

@@ -1,0 +1,41 @@
+﻿@model IEnumerable<EmployeeAssignment>
+
+@{
+    ViewData["Title"] = "Przypisania pracowników";
+}
+
+<h2>Przypisania pracowników do sesji gry</h2>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Pracownik</th>
+            <th>Stanowisko</th>
+            <th>Gra</th>
+            <th>Wariant</th>
+            <th>Sala</th>
+            <th>Stół</th>
+            <th>Start sesji</th>
+            <th>Koniec sesji</th>
+            <th>Przypisał</th>
+            <th>Notatki</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var assignment in Model)
+        {
+            <tr>
+                <td>@assignment.Employee.FirstName @assignment.Employee.LastName</td>
+                <td>@assignment.Employee.Position.Name</td>
+                <td>@assignment.GameSession.GameVariant.Game.Name</td>
+                <td>@assignment.GameSession.GameVariant.Name</td>
+                <td>@assignment.GameSession.GameTable.Hall.Name</td>
+                <td>@assignment.GameSession.GameTable.TableNumber</td>
+                <td>@assignment.GameSession.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@assignment.GameSession.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@assignment.AssignedByUser.Login</td>
+                <td>@assignment.Notes</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,58 @@
+﻿@model GamblingBuddies.Models.EmployeeAssignment
+
+@{
+    ViewData["Title"] = "Dodaj przypisanie pracownika";
+}
+
+<h2>Dodaj przypisanie pracownika do sesji</h2>
+
+<form asp-action="CreateAssignment" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="text-danger">
+        @Html.ValidationSummary()
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Pracownik</label>
+        <select asp-for="EmployeeId" class="form-select">
+            <option value="">-- wybierz pracownika --</option>
+
+            @foreach (var employee in ViewBag.Employees)
+            {
+                <option value="@employee.EmployeeId">
+                    @employee.FirstName @employee.LastName
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Sesja gry</label>
+        <select asp-for="GameSessionId" class="form-select">
+            <option value="">-- wybierz sesję --</option>
+
+            @foreach (var session in ViewBag.GameSessions)
+            {
+                <option value="@session.GameSessionId">
+                    @session.GameVariant.Game.Name -
+                    @session.GameVariant.Name |
+                    @session.GameTable.Hall.Name,
+                    stół @session.GameTable.TableNumber |
+                    @session.StartAt.ToString("dd.MM.yyyy HH:mm")
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label">Notatki</label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+
+    <a asp-action="Assignments" class="btn btn-secondary">
+        Anuluj
+    </a>
+</form>

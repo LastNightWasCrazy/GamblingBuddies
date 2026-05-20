@@ -1,0 +1,45 @@
+﻿@model GamblingBuddies.Models.WorkShift
+
+@{
+    ViewData["Title"] = "Dodaj zmianę pracownika";
+}
+
+<h2>Dodaj zmianę pracownika</h2>
+
+<form asp-action="CreateWorkShift" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="text-danger">
+        @Html.ValidationSummary()
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Pracownik</label>
+        <select asp-for="EmployeeId" class="form-select">
+            <option value="">-- wybierz pracownika --</option>
+
+            @foreach (var employee in ViewBag.Employees)
+            {
+                <option value="@employee.EmployeeId">
+                    @employee.FirstName @employee.LastName
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="StartAt" class="form-label">Początek zmiany</label>
+        <input asp-for="StartAt" type="datetime-local" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EndAt" class="form-label">Koniec zmiany</label>
+        <input asp-for="EndAt" type="datetime-local" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+
+    <a asp-action="WorkShifts" class="btn btn-secondary">
+        Anuluj
+    </a>
+</form>
