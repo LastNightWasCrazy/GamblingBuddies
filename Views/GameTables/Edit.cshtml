@@ -1,0 +1,56 @@
+﻿@model GamblingBuddies.Models.GameTable
+
+@{
+    ViewData["Title"] = "Edycja stołu";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Edycja stołu @Model.TableNumber</h1>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <form asp-controller="GameTables" asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="GameTableId" />
+
+                <div class="mb-3">
+                    <label asp-for="TableNumber" class="form-label">Numer stołu</label>
+                    <input asp-for="TableNumber" class="form-control" />
+                    <span asp-validation-for="TableNumber" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="HallId" class="form-label">Sala</label>
+                    <select asp-for="HallId" asp-items="ViewBag.Halls" class="form-select"></select>
+                    <span asp-validation-for="HallId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MinPlayers" class="form-label">Minimalna liczba graczy</label>
+                    <input asp-for="MinPlayers" class="form-control" />
+                    <span asp-validation-for="MinPlayers" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MaxPlayers" class="form-label">Maksymalna liczba graczy</label>
+                    <input asp-for="MaxPlayers" class="form-control" />
+                    <span asp-validation-for="MaxPlayers" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label">Aktywny</label>
+                </div>
+
+                <button type="submit" class="btn btn-success">Zapisz zmiany</button>
+
+                <a asp-controller="GameTables" asp-action="Index" class="btn btn-secondary">
+                    Wróć
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>

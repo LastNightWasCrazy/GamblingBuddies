@@ -1,0 +1,82 @@
+﻿@model GamblingBuddies.Models.Game
+
+@{
+    ViewData["Title"] = "Edycja gry";
+}
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">Edycja gry</h1>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <form asp-controller="Games"
+                  asp-action="Edit"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="GameId" />
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">
+                        Nazwa gry
+                    </label>
+
+                    <input asp-for="Name" class="form-control" />
+
+                    <span asp-validation-for="Name"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="GameCategoryId"
+                           class="form-label">
+                        Kategoria
+                    </label>
+
+                    <select asp-for="GameCategoryId"
+                            asp-items="ViewBag.Categories"
+                            class="form-select">
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description"
+                           class="form-label">
+                        Opis
+                    </label>
+
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="4">
+                    </textarea>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="IsActive"
+                           class="form-check-input" />
+
+                    <label asp-for="IsActive"
+                           class="form-check-label">
+                        Gra aktywna
+                    </label>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-success">
+                    Zapisz zmiany
+                </button>
+
+                <a asp-controller="Games"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+                    Wróć
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+﻿@model GamblingBuddies.Models.Game
+@inject GamblingBuddies.Models.AppDbContext _context
+
+@{
+    ViewData["Title"] = "Szczegóły gry";
+}
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">@Model.Name</h1>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+
+            <p>
+                <strong>Kategoria:</strong>
+                @Model.GameCategory?.Name
+            </p>
+
+            <p>
+                <strong>Opis:</strong><br />
+                @Model.Description
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Aktywna</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Nieaktywna</span>
+                }
+            </p>
+
+        </div>
+    </div>
+
+    <h3>Warianty gry</h3>
+
+    <table class="table table-dark table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nazwa wariantu</th>
+                <th>Liczba sesji</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var variant in Model.GameVariants)
+            {
+                <tr>
+                    <td>@variant.Name</td>
+                    <td>
+                        @_context.GameSessions.Count(s => s.GameVariantId == variant.GameVariantId)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="Games"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Wróć
+    </a>
+
+</div>
