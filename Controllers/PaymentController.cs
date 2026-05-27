@@ -2,6 +2,7 @@
 using GamblingBuddies.Services.PayU;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace GamblingBuddies.Controllers
 {
@@ -79,6 +80,37 @@ namespace GamblingBuddies.Controllers
 
             Console.WriteLine("PayU Notify:");
             Console.WriteLine(body);
+
+            using var document = JsonDocument.Parse(body);
+
+            var order = document.RootElement.GetProperty("order");
+
+            var orderId = order.GetProperty("orderId").GetString();
+            var status = order.GetProperty("status").GetString();
+
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.PaymentProviderOrderId == orderId);
+
+            if (payment == null)
+            {
+                return Ok();
+            }
+
+            if (status == "COMPLETED")
+            {
+                var paidStatus = await _context.PaymentStatuses
+                    .FirstOrDefaultAsync(s => s.Name == "Paid");
+
+                if (paidStatus == null)
+                {
+                    return Ok();
+                }
+
+                payment.PaymentStatusId = paidStatus.PaymentStatusId;
+                payment.PaidAt = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+            }
 
             return Ok();
         }
