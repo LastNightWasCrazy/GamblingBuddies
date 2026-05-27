@@ -136,6 +136,48 @@ namespace GamblingBuddies.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.Payments)
+                .Include(r => r.ReservationSeats)
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // Usuń powiązane płatności
+                if (reservation.Payments != null && reservation.Payments.Any())
+                {
+                    _context.Payments.RemoveRange(reservation.Payments);
+                }
+
+                // Usuń powiązane miejsca rezerwacji
+                if (reservation.ReservationSeats != null && reservation.ReservationSeats.Any())
+                {
+                    _context.ReservationSeats.RemoveRange(reservation.ReservationSeats);
+                }
+
+                // Usuń samą rezerwację
+                _context.Reservations.Remove(reservation);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Rezerwacja została usunięta.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Błąd podczas usuwania: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private async Task LoadViewBagData()
         {
             ViewBag.Players = await _context.Players.ToListAsync();

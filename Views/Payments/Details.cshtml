@@ -1,0 +1,95 @@
+﻿@model GamblingBuddies.Models.Payment
+
+@{
+    ViewData["Title"] = "Szczegóły płatności";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header" style="background-color: #8b0000; color: white;">
+            <h3>Szczegóły płatności #@Model.PaymentId</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Informacje o płatności</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">ID płatności</dt>
+                        <dd class="col-sm-8">@Model.PaymentId</dd>
+
+                        <dt class="col-sm-4">Kwota</dt>
+                        <dd class="col-sm-8">@Model.Amount.ToString("C")</dd>
+
+                        <dt class="col-sm-4">Metoda płatności</dt>
+                        <dd class="col-sm-8">@Model.PaymentMethod?.Name</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">@Model.PaymentStatus?.Name</dd>
+
+                        <dt class="col-sm-4">Data utworzenia</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+                        <dt class="col-sm-4">Data zapłaty</dt>
+                        <dd class="col-sm-8">@(Model.PaidAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Brak")</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h4>Informacje o rezerwacji</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">ID rezerwacji</dt>
+                        <dd class="col-sm-8">@Model.ReservationId</dd>
+
+                        <dt class="col-sm-4">Gracz</dt>
+                        <dd class="col-sm-8">@Model.Reservation?.Player?.FirstName @Model.Reservation?.Player?.LastName</dd>
+
+                        <dt class="col-sm-4">Sesja</dt>
+                        <dd class="col-sm-8">@Model.Reservation?.GameSession?.GameVariant?.Game?.Name - @Model.Reservation?.GameSession?.GameVariant?.Name</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-12">
+                    <h4>Transakcje płatnicze</h4>
+                    @if (Model.PaymentTransactions != null && Model.PaymentTransactions.Any())
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID transakcji</th>
+                                    <th>External ID</th>
+                                    <th>Kod odpowiedzi</th>
+                                    <th>Komunikat</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.PaymentTransactions)
+                                {
+                                    <tr>
+                                        <td>@transaction.PaymentTransactionId</td>
+                                        <td>@transaction.ExternalTransactionId</td>
+                                        <td>@transaction.ProviderResponseCode</td>
+                                        <td>@transaction.ProviderResponseMessage</td>
+                                        <td>@transaction.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Brak transakcji dla tej płatności</p>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+            </div>
+        </div>
+    </div>
+</div>
