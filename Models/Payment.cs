@@ -18,6 +18,9 @@ namespace GamblingBuddies.Models
         public decimal Amount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? PaidAt { get; set; }
+        public string? ExternalOrderId { get; set; }
+        public string? PaymentProviderOrderId { get; set; }
+        public string? PaymentProvider { get; set; }
 
         public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
         public ICollection<Document> Documents { get; set; } = new List<Document>();

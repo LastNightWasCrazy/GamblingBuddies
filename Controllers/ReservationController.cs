@@ -83,7 +83,7 @@ namespace GamblingBuddies.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Go(int HallId, int GameId, int GameTableId, DateTime ReservationDate, string ReservationTime, int Quantity)
+        public IActionResult Go(int HallId, int GameId, int GameTableId, DateTime ReservationDate, string ReservationTime, int Quantity, string PaymentOption)
         {
             if (HallId <= 0 || GameId <= 0 || GameTableId <= 0)
             {
@@ -218,7 +218,45 @@ namespace GamblingBuddies.Controllers
 
             _context.SaveChanges();
 
-            TempData["Success"] = "Rezerwacja została utworzona i oczekuje na zatwierdzenie przez administratora.";
+            TempData["Success"] = "Rezerwacja została utworzona.";
+            TempData["ReservationId"] = reservation.ReservationId;
+
+            var pendingPaymentStatus = _context.PaymentStatuses
+     .FirstOrDefault(s => s.Name == "Pending");
+
+            if (pendingPaymentStatus == null)
+            {
+                TempData["Error"] = "Brak statusu płatności Pending w bazie.";
+                return RedirectToAction("Go");
+            }
+
+            var paymentMethod = _context.PaymentMethods
+                .FirstOrDefault(m => m.Name == PaymentOption);
+
+            if (paymentMethod == null)
+            {
+                TempData["Error"] = $"Brak metody płatności {PaymentOption} w bazie.";
+                return RedirectToAction("Go");
+            }
+
+            var payment = new Payment
+            {
+                ReservationId = reservation.ReservationId,
+                PaymentMethodId = paymentMethod.PaymentMethodId,
+                PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                Amount = Quantity * 50,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Payments.Add(payment);
+            _context.SaveChanges();
+
+            if (PaymentOption == "Card")
+            {
+                return RedirectToAction("Pay", "Payment", new { reservationId = reservation.ReservationId });
+            }
+
+            TempData["Success"] = "Rezerwacja została utworzona. Płatność gotówką będzie wykonana na miejscu.";
 
             return RedirectToAction("Go");
         }

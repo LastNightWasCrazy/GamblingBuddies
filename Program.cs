@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using GamblingBuddies.Services.PayU;
 namespace GamblingBuddies
 {
     public class Program
@@ -7,7 +8,15 @@ namespace GamblingBuddies
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            builder.Services.Configure<PayUOptions>(
+                builder.Configuration.GetSection("PayU"));
+
+            builder.Services.AddHttpClient<PayUService>()
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                    {
+                        AllowAutoRedirect = false
+                    });
+
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDbContext<AppDbContext>(options =>

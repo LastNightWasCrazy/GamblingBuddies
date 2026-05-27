@@ -1,0 +1,116 @@
+﻿using GamblingBuddies.Models;
+using GamblingBuddies.Services.PayU;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace GamblingBuddies.Controllers
+{
+    public class PaymentController : Controller
+    {
+        private readonly AppDbContext _context;
+        private readonly PayUService _payUService;
+
+        public PaymentController(AppDbContext context, PayUService payUService)
+        {
+            _context = context;
+            _payUService = payUService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Pay(int reservationId)
+        {
+            var payment = await _context.Payments
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
+
+            if (payment == null)
+            {
+                TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            var continueUrl = Url.Action(
+                "Continue",
+                "Payment",
+                new { reservationId = reservationId },
+                Request.Scheme
+            )!;
+
+            var notifyUrl = Url.Action(
+                "Notify",
+                "Payment",
+                null,
+                Request.Scheme
+            )!;
+
+            var customerIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+
+            var result = await _payUService.CreateOrderAsync(
+                payment,
+                continueUrl,
+                notifyUrl,
+                customerIp
+            );
+
+            await _context.SaveChangesAsync();
+
+            if (string.IsNullOrEmpty(result.RedirectUri))
+            {
+                TempData["Error"] = "PayU nie zwróciło adresu płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            return Redirect(result.RedirectUri);
+        }
+
+        [HttpGet]
+        public IActionResult Continue(int reservationId)
+        {
+            TempData["Success"] = "Wrócono z PayU. Płatność oczekuje na potwierdzenie.";
+
+            return RedirectToAction("Go", "Reservation");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Notify()
+        {
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            Console.WriteLine("PayU Notify:");
+            Console.WriteLine(body);
+
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Confirm(int reservationId)
+        {
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
+
+            if (payment == null)
+            {
+                TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            var paidStatus = await _context.PaymentStatuses
+                .FirstOrDefaultAsync(s => s.Name == "Paid");
+
+            if (paidStatus == null)
+            {
+                TempData["Error"] = "Brak statusu płatności Paid w bazie.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            payment.PaymentStatusId = paidStatus.PaymentStatusId;
+            payment.PaidAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Płatność kartą została potwierdzona.";
+            return RedirectToAction("Go", "Reservation");
+        }
+    }
+}

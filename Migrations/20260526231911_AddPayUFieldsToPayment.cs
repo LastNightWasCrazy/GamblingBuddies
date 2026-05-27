@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GamblingBuddies.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPaymentReports : Migration
+    public partial class AddPayUFieldsToPayment : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -305,13 +305,13 @@ namespace GamblingBuddies.Migrations
                     ReportName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GeneratedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TransactionsCount = table.Column<int>(type: "int", nullable: false),
                     FiltersApplied = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GeneratedByUserId = table.Column<int>(type: "int", nullable: false),
-                    PdfFilePath = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    PdfFilePath = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -493,8 +493,7 @@ namespace GamblingBuddies.Migrations
                     StartAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SessionStatusId = table.Column<int>(type: "int", nullable: false),
-                    CreatedByUserId = table.Column<int>(type: "int", nullable: false),
-                    SessionStatusDictionarySessionStatusId = table.Column<int>(type: "int", nullable: true)
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -512,8 +511,8 @@ namespace GamblingBuddies.Migrations
                         principalColumn: "GameVariantId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GameSessions_SessionStatusDictionaries_SessionStatusDictionarySessionStatusId",
-                        column: x => x.SessionStatusDictionarySessionStatusId,
+                        name: "FK_GameSessions_SessionStatusDictionaries_SessionStatusId",
+                        column: x => x.SessionStatusId,
                         principalTable: "SessionStatusDictionaries",
                         principalColumn: "SessionStatusId",
                         onDelete: ReferentialAction.Restrict);
@@ -625,7 +624,10 @@ namespace GamblingBuddies.Migrations
                     PaymentStatusId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExternalOrderId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentProviderOrderId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentProvider = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -842,9 +844,9 @@ namespace GamblingBuddies.Migrations
                 column: "GameVariantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GameSessions_SessionStatusDictionarySessionStatusId",
+                name: "IX_GameSessions_SessionStatusId",
                 table: "GameSessions",
-                column: "SessionStatusDictionarySessionStatusId");
+                column: "SessionStatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GameTables_HallId",
