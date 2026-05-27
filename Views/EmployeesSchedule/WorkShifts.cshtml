@@ -30,6 +30,7 @@
             <th>Start</th>
             <th>Koniec</th>
             <th>Utworzone przez</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
@@ -42,6 +43,12 @@
                 <td>@shift.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@shift.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@shift.CreatedByUser.Login</td>
+                <td>
+                    <form asp-action="DeleteWorkShift" asp-route-id="@shift.WorkShiftId" method="post" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Usunąć zmianę?')">Usuń</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>

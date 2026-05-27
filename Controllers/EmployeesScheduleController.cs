@@ -170,8 +170,46 @@ namespace GamblingBuddies.Controllers
                 return View(assignment);
             }
 
+
+
             _context.Set<EmployeeAssignment>().Add(assignment);
             _context.SaveChanges();
+
+            return RedirectToAction(nameof(Assignments));
+        }
+
+        [Authorize(Roles = "Administrator,Manager")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteWorkShift(int id)
+        {
+            var workShift = await _context.WorkShifts.FindAsync(id);
+            if (workShift == null)
+            {
+                return NotFound();
+            }
+
+            _context.WorkShifts.Remove(workShift);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Zmiana została usunięta.";
+
+            return RedirectToAction(nameof(WorkShifts));
+        }
+
+        [Authorize(Roles = "Administrator,Manager")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssignment(int id)
+        {
+            var assignment = await _context.EmployeeAssignments.FindAsync(id);
+            if (assignment == null)
+            {
+                return NotFound();
+            }
+
+            _context.EmployeeAssignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Przypisanie zostało usunięte.";
 
             return RedirectToAction(nameof(Assignments));
         }

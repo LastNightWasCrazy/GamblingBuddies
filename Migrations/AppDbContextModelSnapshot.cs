@@ -486,11 +486,20 @@ namespace GamblingBuddies.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ExternalOrderId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PaymentProvider")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentProviderOrderId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PaymentStatusId")
                         .HasColumnType("int");

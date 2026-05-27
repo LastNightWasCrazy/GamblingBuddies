@@ -1,0 +1,19 @@
+﻿@model GamblingBuddies.Models.Payment
+
+<div class="MainForm">
+    <h2>Płatność kartą</h2>
+
+    <p>Kwota do zapłaty: <strong>@Model.Amount zł</strong></p>
+
+    <form asp-controller="Payment" asp-action="Confirm" method="get">
+        <input type="hidden" name="reservationId" value="@Model.ReservationId" />
+
+        <button type="submit" class="btn btn-success">
+            Potwierdź płatność kartą
+        </button>
+    </form>
+
+    <a asp-controller="Reservation" asp-action="Go" class="btn btn-secondary mt-2">
+        Anuluj
+    </a>
+</div>

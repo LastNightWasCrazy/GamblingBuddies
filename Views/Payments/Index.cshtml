@@ -1,0 +1,90 @@
+﻿@model IEnumerable<GamblingBuddies.Models.Payment>
+
+@{
+    ViewData["Title"] = "Lista płatności";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Płatności</h1>
+        <span class="badge bg-secondary fs-6">Panel administracyjny</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <table class="table table-dark table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Gracz</th>
+                        <th>Rezerwacja ID</th>
+                        <th>Kwota</th>
+                        <th>Metoda</th>
+                        <th>Status</th>
+                        <th>Data utworzenia</th>
+                        <th>Data zapłaty</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model)
+                    {
+                        <tr>
+                            <td>@payment.PaymentId</td>
+                            <td>@(payment.Reservation?.Player?.FirstName ?? "Brak") @(payment.Reservation?.Player?.LastName ?? "")</td>
+                            <td>@payment.ReservationId</td>
+                            <td>@payment.Amount.ToString("C")</td>
+                            <td>@payment.PaymentMethod?.Name</td>
+                            <td>
+                                @if (payment.PaymentStatus?.Name == "Paid")
+                                {
+                                    <span class="badge bg-success">@payment.PaymentStatus?.Name</span>
+                                }
+                                else if (payment.PaymentStatus?.Name == "Pending")
+                                {
+                                    <span class="badge bg-warning">@payment.PaymentStatus?.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@payment.PaymentStatus?.Name</span>
+                                }
+                            </td>
+                            <td>@payment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(payment.PaidAt?.ToString("yyyy-MM-dd HH:mm") ?? "Brak")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@payment.PaymentId" class="btn btn-info btn-sm">Szczegóły</a>
+                                <form asp-action="Delete" asp-route-id="@payment.PaymentId" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Czy na pewno chcesz usunąć tę płatność?')">Usuń</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    Brak płatności w systemie.
+                </div>
+            }
+        </div>
+    </div>
+</div>
