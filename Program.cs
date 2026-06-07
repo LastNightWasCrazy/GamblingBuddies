@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using GamblingBuddies.Services.PayU;
+
 namespace GamblingBuddies
 {
     public class Program
@@ -31,6 +32,9 @@ namespace GamblingBuddies
 
             builder.Services.AddAuthorization();
 
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -39,11 +43,15 @@ namespace GamblingBuddies
                 DataSeeder.Seed(context);
             }
 
-            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
