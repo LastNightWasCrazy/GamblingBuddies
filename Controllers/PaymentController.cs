@@ -78,9 +78,6 @@ namespace GamblingBuddies.Controllers
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
 
-            Console.WriteLine("PayU Notify:");
-            Console.WriteLine(body);
-
             using var document = JsonDocument.Parse(body);
 
             var order = document.RootElement.GetProperty("order");
@@ -88,29 +85,40 @@ namespace GamblingBuddies.Controllers
             var orderId = order.GetProperty("orderId").GetString();
             var status = order.GetProperty("status").GetString();
 
+            var extOrderId = order.GetProperty("extOrderId").GetString();
+
             var payment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.PaymentProviderOrderId == orderId);
+                .FirstOrDefaultAsync(p =>
+                    p.PaymentProviderOrderId == orderId ||
+                    p.ExternalOrderId == extOrderId);
 
             if (payment == null)
             {
                 return Ok();
             }
 
+            _context.PaymentTransactions.Add(new PaymentTransaction
+            {
+                PaymentId = payment.PaymentId,
+                ExternalTransactionId = orderId ?? "BRAK_ORDER_ID",
+                ProviderResponseCode = status ?? "BRAK_STATUSU",
+                ProviderResponseMessage = body,
+                CreatedAt = DateTime.Now
+            });
+
             if (status == "COMPLETED")
             {
                 var paidStatus = await _context.PaymentStatuses
                     .FirstOrDefaultAsync(s => s.Name == "Paid");
 
-                if (paidStatus == null)
+                if (paidStatus != null)
                 {
-                    return Ok();
+                    payment.PaymentStatusId = paidStatus.PaymentStatusId;
+                    payment.PaidAt = DateTime.Now;
                 }
-
-                payment.PaymentStatusId = paidStatus.PaymentStatusId;
-                payment.PaidAt = DateTime.Now;
-
-                await _context.SaveChangesAsync();
             }
+
+            await _context.SaveChangesAsync();
 
             return Ok();
         }

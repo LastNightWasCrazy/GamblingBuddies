@@ -7,6 +7,7 @@
         public string Name { get; set; }
 
         public int HallTypeId { get; set; }
+        public HallTypeDictionary HallType { get; set; } = null!;
 
         public string Description { get; set; }
 

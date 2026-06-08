@@ -51,6 +51,21 @@ namespace GamblingBuddies.Models
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
+
+            modelBuilder.Entity<Hall>()
+                .HasOne(h => h.HallType)
+                .WithMany(ht => ht.Halls)
+                .HasForeignKey(h => h.HallTypeId);
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Position)
+                .WithMany(p => p.Employees)
+                .HasForeignKey(e => e.PositionId);
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Status)
+                .WithMany(s => s.Employees)
+                .HasForeignKey(e => e.EmployeeStatusId);
         }
     }
 }

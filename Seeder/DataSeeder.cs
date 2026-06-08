@@ -258,7 +258,7 @@
                 Phone = "500100200",
                 HireDate = DateTime.Now.AddMonths(-6),
                 PositionId = managerPosition.EmployeePositionDictionaryId,
-                EmployeeStatusDictionaryId = activeEmployeeStatus.EmployeeStatusDictionaryId
+                EmployeeStatusId = activeEmployeeStatus.EmployeeStatusDictionaryId
             };
 
             var employee2 = new Employee
@@ -269,7 +269,7 @@
                 Phone = "500300400",
                 HireDate = DateTime.Now.AddMonths(-3),
                 PositionId = dealerPosition.EmployeePositionDictionaryId,
-                EmployeeStatusDictionaryId = activeEmployeeStatus.EmployeeStatusDictionaryId
+                EmployeeStatusId = activeEmployeeStatus.EmployeeStatusDictionaryId
             };
 
             context.Set<Employee>().AddRange(employee1, employee2);

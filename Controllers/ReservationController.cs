@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace GamblingBuddies.Controllers
 {
-    [Authorize]
     public class ReservationController : Controller
     {
         private readonly AppDbContext _context;
@@ -16,6 +17,7 @@ namespace GamblingBuddies.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Go()
         {
             ViewBag.Halls = _context.Set<Hall>()
@@ -27,6 +29,7 @@ namespace GamblingBuddies.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult GetGamesByHall(int hallId)
         {
             var games = (
@@ -54,6 +57,7 @@ namespace GamblingBuddies.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult GetTablesByHallAndGame(int hallId, int gameId)
         {
             var tables = (
@@ -70,7 +74,7 @@ namespace GamblingBuddies.Controllers
                 select new
                 {
                     gameTableId = table.GameTableId,
-                    text = "Stół " + table.TableNumber + " | max graczy: " + table.MaxPlayers,
+                    text = "Stół " + table.TableNumber + " | maks. osób: " + table.MaxPlayers,
                     maxPlayers = table.MaxPlayers
                 }
             )
@@ -81,10 +85,136 @@ namespace GamblingBuddies.Controllers
             return Json(tables);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Go(int HallId, int GameId, int GameTableId, DateTime ReservationDate, string ReservationTime, int Quantity, string PaymentOption)
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult CheckTableAvailability(
+            int gameTableId,
+            string reservationDate,
+            string reservationTime,
+            int durationHours)
         {
+            if (gameTableId <= 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nie wybrano stołu."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(reservationDate) ||
+                !DateTime.TryParse(reservationDate, out var date))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nie wybrano poprawnej daty."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(reservationTime) ||
+                !TimeSpan.TryParse(reservationTime, out var time))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nie wybrano poprawnej godziny."
+                });
+            }
+
+            if (durationHours < 1 || durationHours > 4)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Czas rezerwacji musi wynosić od 1 do 4 godzin."
+                });
+            }
+
+            var startAt = date.Date.Add(time);
+            var endAt = startAt.AddHours(durationHours);
+
+            if (startAt <= DateTime.Now)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nie można rezerwować stołu w przeszłości."
+                });
+            }
+
+            var table = _context.GameTables
+                .FirstOrDefault(t => t.GameTableId == gameTableId && t.IsActive);
+
+            if (table == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Wybrany stół nie istnieje albo jest nieaktywny."
+                });
+            }
+
+            var isTableReserved = _context.GameSessions
+                .Any(s =>
+                    s.GameTableId == gameTableId &&
+                    s.StartAt < endAt &&
+                    s.EndAt > startAt);
+
+            if (isTableReserved)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Ten stół jest już zarezerwowany w wybranym terminie."
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                maxPlayers = table.MaxPlayers,
+                message = $"Stół jest dostępny od {startAt:HH:mm} do {endAt:HH:mm}."
+            });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult Go(
+            int HallId,
+            int GameId,
+            int GameTableId,
+            DateTime ReservationDate,
+            string ReservationTime,
+            int DurationHours,
+            int Quantity,
+            string PaymentOption,
+            string PlayerFirstName,
+            string PlayerLastName,
+            string PlayerEmail,
+            string? PlayerPhone)
+        {
+            if (string.IsNullOrWhiteSpace(PlayerFirstName) ||
+                string.IsNullOrWhiteSpace(PlayerLastName) ||
+                string.IsNullOrWhiteSpace(PlayerEmail))
+            {
+                TempData["Error"] = "Podaj imię, nazwisko oraz email.";
+                return RedirectToAction("Go");
+            }
+
+            if (!IsValidEmail(PlayerEmail))
+            {
+                TempData["Error"] = "Podaj poprawny adres email.";
+                return RedirectToAction("Go");
+            }
+
+            if (!string.IsNullOrWhiteSpace(PlayerPhone) && !IsValidPhone(PlayerPhone))
+            {
+                TempData["Error"] = "Podaj poprawny numer telefonu. Numer powinien mieć od 9 do 15 cyfr.";
+                return RedirectToAction("Go");
+            }
+
             if (HallId <= 0 || GameId <= 0 || GameTableId <= 0)
             {
                 TempData["Error"] = "Wybierz salę, grę oraz stół.";
@@ -93,18 +223,25 @@ namespace GamblingBuddies.Controllers
 
             if (Quantity <= 0)
             {
-                TempData["Error"] = "Liczba miejsc musi być większa od zera.";
+                TempData["Error"] = "Liczba osób musi być większa od zera.";
                 return RedirectToAction("Go");
             }
 
-            if (string.IsNullOrWhiteSpace(ReservationTime) || !TimeSpan.TryParse(ReservationTime, out var time))
+            if (DurationHours < 1 || DurationHours > 4)
+            {
+                TempData["Error"] = "Czas rezerwacji musi wynosić od 1 do 4 godzin.";
+                return RedirectToAction("Go");
+            }
+
+            if (string.IsNullOrWhiteSpace(ReservationTime) ||
+                !TimeSpan.TryParse(ReservationTime, out var time))
             {
                 TempData["Error"] = "Wybierz poprawną godzinę.";
                 return RedirectToAction("Go");
             }
 
             var startAt = ReservationDate.Date.Add(time);
-            var endAt = startAt.AddHours(3);
+            var endAt = startAt.AddHours(DurationHours);
 
             if (startAt <= DateTime.Now)
             {
@@ -114,11 +251,20 @@ namespace GamblingBuddies.Controllers
 
             var table = _context.GameTables
                 .Include(t => t.Seats)
-                .FirstOrDefault(t => t.GameTableId == GameTableId && t.HallId == HallId && t.IsActive);
+                .FirstOrDefault(t =>
+                    t.GameTableId == GameTableId &&
+                    t.HallId == HallId &&
+                    t.IsActive);
 
             if (table == null)
             {
                 TempData["Error"] = "Wybrany stół nie istnieje albo jest nieaktywny.";
+                return RedirectToAction("Go");
+            }
+
+            if (Quantity > table.MaxPlayers)
+            {
+                TempData["Error"] = $"Ten stół obsługuje maksymalnie {table.MaxPlayers} osób.";
                 return RedirectToAction("Go");
             }
 
@@ -131,20 +277,6 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go");
             }
 
-            if (Quantity > table.MaxPlayers)
-            {
-                TempData["Error"] = $"Nie można zarezerwować więcej niż {table.MaxPlayers} miejsc przy tym stole.";
-                return RedirectToAction("Go");
-            }
-
-            var activeSeatsCount = table.Seats.Count(s => s.IsActive);
-
-            if (Quantity > activeSeatsCount)
-            {
-                TempData["Error"] = $"Przy stole zdefiniowano tylko {activeSeatsCount} aktywnych miejsc.";
-                return RedirectToAction("Go");
-            }
-
             var plannedStatus = _context.SessionStatusDictionaries
                 .FirstOrDefault(s => s.Name == "Planned");
 
@@ -154,75 +286,17 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go");
             }
 
-            var pendingStatus = _context.ReservationStatusDictionaries
+            var pendingReservationStatus = _context.ReservationStatusDictionaries
                 .FirstOrDefault(s => s.Name == "Pending");
 
-            if (pendingStatus == null)
+            if (pendingReservationStatus == null)
             {
                 TempData["Error"] = "Brak statusu rezerwacji Pending w bazie.";
                 return RedirectToAction("Go");
             }
 
-            var overlappingSession = _context.GameSessions
-                .Any(s =>
-                    s.GameTableId == GameTableId &&
-                    s.StartAt < endAt &&
-                    s.EndAt > startAt);
-
-            if (overlappingSession)
-            {
-                TempData["Error"] = "W wybranym terminie ten stół ma już zaplanowaną sesję.";
-                return RedirectToAction("Go");
-            }
-
-            var session = new GameSession
-            {
-                GameVariantId = variant.GameVariantId,
-                GameTableId = GameTableId,
-                StartAt = startAt,
-                EndAt = endAt,
-                SessionStatusId = plannedStatus.SessionStatusId,
-                CreatedByUserId = GetCurrentUserId()
-            };
-
-            _context.GameSessions.Add(session);
-            _context.SaveChanges();
-
-            var player = GetOrCreatePlayerForCurrentUser();
-
-            var reservation = new Reservation
-            {
-                PlayerId = player.PlayerId,
-                GameSessionId = session.GameSessionId,
-                ReservationStatusId = pendingStatus.ReservationStatusId,
-                ReservedAt = DateTime.Now
-            };
-
-            _context.Reservations.Add(reservation);
-            _context.SaveChanges();
-
-            var freeSeats = table.Seats
-                .Where(s => s.IsActive)
-                .Take(Quantity)
-                .ToList();
-
-            foreach (var seat in freeSeats)
-            {
-                _context.ReservationSeats.Add(new ReservationSeat
-                {
-                    ReservationId = reservation.ReservationId,
-                    SeatId = seat.SeatId,
-                    GameSessionId = session.GameSessionId
-                });
-            }
-
-            _context.SaveChanges();
-
-            TempData["Success"] = "Rezerwacja została utworzona.";
-            TempData["ReservationId"] = reservation.ReservationId;
-
             var pendingPaymentStatus = _context.PaymentStatuses
-     .FirstOrDefault(s => s.Name == "Pending");
+                .FirstOrDefault(s => s.Name == "Pending");
 
             if (pendingPaymentStatus == null)
             {
@@ -239,61 +313,120 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go");
             }
 
+            var isTableReserved = _context.GameSessions
+                .Any(s =>
+                    s.GameTableId == GameTableId &&
+                    s.StartAt < endAt &&
+                    s.EndAt > startAt);
+
+            if (isTableReserved)
+            {
+                TempData["Error"] = "Ten stół jest już zarezerwowany w wybranym terminie. Wybierz inny stół albo inną godzinę.";
+                return RedirectToAction("Go");
+            }
+
+            var session = new GameSession
+            {
+                GameVariantId = variant.GameVariantId,
+                GameTableId = GameTableId,
+                StartAt = startAt,
+                EndAt = endAt,
+                SessionStatusId = plannedStatus.SessionStatusId,
+                CreatedByUserId = GetCurrentUserIdOrDefault()
+            };
+
+            _context.GameSessions.Add(session);
+            _context.SaveChanges();
+
+            var player = GetOrCreatePlayer(
+                PlayerFirstName,
+                PlayerLastName,
+                PlayerEmail,
+                PlayerPhone);
+
+            var reservation = new Reservation
+            {
+                PlayerId = player.PlayerId,
+                GameSessionId = session.GameSessionId,
+                ReservationStatusId = pendingReservationStatus.ReservationStatusId,
+                ReservedAt = DateTime.Now
+            };
+
+            _context.Reservations.Add(reservation);
+            _context.SaveChanges();
+
+            var seatsForReservation = table.Seats
+                .Where(s => s.IsActive)
+                .OrderBy(s => s.SeatNumber)
+                .Take(Quantity)
+                .ToList();
+
+            foreach (var seat in seatsForReservation)
+            {
+                _context.ReservationSeats.Add(new ReservationSeat
+                {
+                    ReservationId = reservation.ReservationId,
+                    SeatId = seat.SeatId,
+                    GameSessionId = session.GameSessionId
+                });
+            }
+
             var payment = new Payment
             {
                 ReservationId = reservation.ReservationId,
                 PaymentMethodId = paymentMethod.PaymentMethodId,
                 PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
-                Amount = Quantity * 50,
+                Amount = Quantity * DurationHours * 50,
                 CreatedAt = DateTime.Now
             };
 
             _context.Payments.Add(payment);
             _context.SaveChanges();
 
+            TempData["ReservationId"] = reservation.ReservationId;
+
             if (PaymentOption == "Card")
             {
                 return RedirectToAction("Pay", "Payment", new { reservationId = reservation.ReservationId });
             }
 
-            TempData["Success"] = "Rezerwacja została utworzona. Płatność gotówką będzie wykonana na miejscu.";
+            TempData["Success"] = $"Rezerwacja całego stołu została utworzona od {startAt:HH:mm} do {endAt:HH:mm}. Płatność gotówką będzie wykonana na miejscu.";
 
             return RedirectToAction("Go");
         }
 
-        private int GetCurrentUserId()
+        private Player GetOrCreatePlayer(
+            string firstName,
+            string lastName,
+            string email,
+            string? phone)
         {
-            var login = User.Identity?.Name;
-
-            var user = _context.SystemUsers
-                .FirstOrDefault(u => u.Login == login);
-
-            if (user != null)
-                return user.SystemUserId;
-
-            return _context.SystemUsers
-                .OrderBy(u => u.SystemUserId)
-                .Select(u => u.SystemUserId)
-                .First();
-        }
-
-        private Player GetOrCreatePlayerForCurrentUser()
-        {
-            var login = User.Identity?.Name ?? "user";
-            var email = $"{login}@local.test";
+            email = email.Trim().ToLower();
 
             var player = _context.Players
-                .FirstOrDefault(p => p.Email == email);
+                .FirstOrDefault(p => p.Email.ToLower() == email);
 
             if (player != null)
+            {
+                player.FirstName = firstName.Trim();
+                player.LastName = lastName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    player.Phone = phone.Trim();
+                }
+
+                _context.SaveChanges();
+
                 return player;
+            }
 
             player = new Player
             {
-                FirstName = "Użytkownik",
-                LastName = login,
+                FirstName = firstName.Trim(),
+                LastName = lastName.Trim(),
                 Email = email,
-                Phone = "000000000",
+                Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim(),
                 CreatedAt = DateTime.Now
             };
 
@@ -301,6 +434,43 @@ namespace GamblingBuddies.Controllers
             _context.SaveChanges();
 
             return player;
+        }
+
+        private int GetCurrentUserIdOrDefault()
+        {
+            var login = User.Identity?.Name;
+
+            if (!string.IsNullOrWhiteSpace(login))
+            {
+                var user = _context.SystemUsers
+                    .FirstOrDefault(u => u.Login == login);
+
+                if (user != null)
+                    return user.SystemUserId;
+            }
+
+            var admin = _context.SystemUsers
+                .FirstOrDefault(u => u.Login == "admin");
+
+            if (admin != null)
+                return admin.SystemUserId;
+
+            return _context.SystemUsers
+                .OrderBy(u => u.SystemUserId)
+                .Select(u => u.SystemUserId)
+                .First();
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            return new EmailAddressAttribute().IsValid(email);
+        }
+
+        private bool IsValidPhone(string phone)
+        {
+            phone = phone.Replace(" ", "").Replace("-", "");
+
+            return Regex.IsMatch(phone, @"^\+?[0-9]{9,15}$");
         }
     }
 }

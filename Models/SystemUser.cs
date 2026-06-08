@@ -8,13 +8,13 @@ namespace GamblingBuddies.Models
         public int SystemUserId { get; set; }
 
         [Required]
-        public string Login { get; set; }
+        public string Login { get; set; } = null!;
 
         [Required]
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
 
         [Required]
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = null!;
 
         public bool IsActive { get; set; }
 

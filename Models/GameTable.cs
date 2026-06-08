@@ -6,8 +6,14 @@
 
         public int HallId { get; set; }
         public Hall Hall { get; set; }
+
+        [Range(1, 999)]
         public int TableNumber { get; set; }
+
+        [Range(1, 20)]
         public int MinPlayers { get; set; }
+
+        [Range(1, 20)]
         public int MaxPlayers { get; set; }
         public bool IsActive { get; set; }
 
