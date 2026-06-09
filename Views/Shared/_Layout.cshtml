@@ -58,7 +58,7 @@
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-light" asp-controller="Payment" asp-action="Index">Płatności</a>
+                                    <a class="nav-link text-light" asp-controller="Payments" asp-action="Index">Płatności</a>
                                 </li>
 
                                 <li class="nav-item">
@@ -85,6 +85,13 @@
                                     </a>
                                 </li>
 
+                                <li class="nav-item">
+                                   <a class="nav-link text-dark"
+                                        asp-controller="Employees"
+                                        asp-action="Index">
+                                        Pracownicy
+                                   </a>
+                                </li>
                             }
 
                             @if (User.IsInRole("Manager"))

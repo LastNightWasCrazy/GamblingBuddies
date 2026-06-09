@@ -16,10 +16,58 @@
     <form asp-controller="Reservation" asp-action="Go" method="post">
         @Html.AntiForgeryToken()
 
+        <h4 class="mb-3">Dane osoby rezerwującej</h4>
+
+        <div class="mb-3">
+            <label class="form-label">Imię</label>
+            <input type="text"
+                   name="PlayerFirstName"
+                   class="form-control"
+                   required
+                   maxlength="100" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nazwisko</label>
+            <input type="text"
+                   name="PlayerLastName"
+                   class="form-control"
+                   required
+                   maxlength="100" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email"
+                   name="PlayerEmail"
+                   class="form-control"
+                   required
+                   maxlength="150" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Telefon</label>
+            <input type="tel"
+                   name="PlayerPhone"
+                   class="form-control"
+                   maxlength="15"
+                   pattern="^\+?[0-9]{9,15}$"
+                   title="Numer powinien mieć od 9 do 15 cyfr. Możesz użyć + na początku." />
+        </div>
+
+        <hr />
+
+        <h4 class="mb-3">Rezerwacja całego stołu</h4>
+
+        <div class="alert alert-info">
+            Rezerwacja dotyczy całego wybranego stołu. Liczba osób służy tylko do określenia, ilu graczy będzie przy stole.
+        </div>
+
         <div class="mb-3">
             <label class="form-label">Wybierz salę</label>
             <select id="hallSelect" name="HallId" class="form-select" required>
                 <option value="">-- wybierz salę --</option>
+
                 @foreach (var hall in ViewBag.Halls)
                 {
                     <option value="@hall.HallId">@hall.Name</option>
@@ -43,38 +91,79 @@
 
         <div class="mb-3">
             <label class="form-label">Data rezerwacji</label>
-            <input id="dateInput" type="date" name="ReservationDate" class="form-control" required />
+            <input id="dateInput"
+                   type="date"
+                   name="ReservationDate"
+                   class="form-control"
+                   required />
         </div>
 
         <div class="mb-3">
             <label class="form-label">Godzina rozpoczęcia</label>
-            <input id="timeInput" type="time" name="ReservationTime" class="form-control" required />
+            <input id="timeInput"
+                   type="time"
+                   name="ReservationTime"
+                   class="form-control"
+                   required />
         </div>
 
         <div class="mb-3">
-            <label for="quantityInput" class="formReservation">Liczba miejsc</label>
-            <input id="quantityInput" type="number" name="Quantity" class="form-control" min="1" value="1" required>
+            <label class="form-label">Czas rezerwacji stołu</label>
+            <select id="durationSelect" name="DurationHours" class="form-select" required>
+                <option value="1">1 godzina</option>
+                <option value="2">2 godziny</option>
+                <option value="3" selected>3 godziny</option>
+                <option value="4">4 godziny</option>
+            </select>
         </div>
+
+        <div class="mb-3">
+            <label for="quantityInput" class="form-label">Liczba osób przy stole</label>
+            <input id="quantityInput"
+                   type="number"
+                   name="Quantity"
+                   class="form-control"
+                   min="1"
+                   value="1"
+                   required />
+
+            <small id="peopleLimitInfo" class="form-text text-muted"></small>
+            <div id="availabilityMessage" class="mt-2"></div>
+        </div>
+
         <div class="mb-3">
             <label class="form-label">Sposób płatności</label>
 
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="PaymentOption" value="Cash" checked>
-                <label class="formReservation">
+                <input id="paymentCash"
+                       class="form-check-input"
+                       type="radio"
+                       name="PaymentOption"
+                       value="Cash"
+                       checked />
+
+                <label for="paymentCash" class="form-check-label">
                     Zapłacę na miejscu
                 </label>
             </div>
 
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="PaymentOption" value="Card">
-                <label class="formReservation">
+                <input id="paymentCard"
+                       class="form-check-input"
+                       type="radio"
+                       name="PaymentOption"
+                       value="Card" />
+
+                <label for="paymentCard" class="form-check-label">
                     Zapłacę online teraz
                 </label>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Zarezerwuj</button>
-        </form>
+        <button id="submitButton" type="submit" class="btn btn-primary">
+            Zarezerwuj cały stół
+        </button>
+    </form>
 </div>
 
 <script>
@@ -84,9 +173,13 @@
     const quantityInput = document.getElementById("quantityInput");
     const dateInput = document.getElementById("dateInput");
     const timeInput = document.getElementById("timeInput");
+    const availabilityMessage = document.getElementById("availabilityMessage");
+    const peopleLimitInfo = document.getElementById("peopleLimitInfo");
+    const submitButton = document.getElementById("submitButton");
 
     const today = new Date();
     const todayString = today.toISOString().split("T")[0];
+
     dateInput.min = todayString;
 
     hallSelect.addEventListener("change", function () {
@@ -100,6 +193,9 @@
 
         quantityInput.value = 1;
         quantityInput.removeAttribute("max");
+        availabilityMessage.innerHTML = "";
+        peopleLimitInfo.textContent = "";
+        submitButton.disabled = false;
 
         if (!hallId) {
             gameSelect.innerHTML = '<option value="">-- najpierw wybierz salę --</option>';
@@ -124,6 +220,9 @@
                 });
 
                 gameSelect.disabled = false;
+            })
+            .catch(() => {
+                gameSelect.innerHTML = '<option value="">Błąd ładowania gier</option>';
             });
     });
 
@@ -133,8 +232,12 @@
 
         tableSelect.disabled = true;
         tableSelect.innerHTML = '<option value="">Ładowanie...</option>';
+
         quantityInput.value = 1;
         quantityInput.removeAttribute("max");
+        availabilityMessage.innerHTML = "";
+        peopleLimitInfo.textContent = "";
+        submitButton.disabled = false;
 
         if (!hallId || !gameId) {
             tableSelect.innerHTML = '<option value="">-- najpierw wybierz grę --</option>';
@@ -160,6 +263,9 @@
                 });
 
                 tableSelect.disabled = false;
+            })
+            .catch(() => {
+                tableSelect.innerHTML = '<option value="">Błąd ładowania stołów</option>';
             });
     });
 
@@ -170,20 +276,87 @@
         if (maxPlayers) {
             quantityInput.max = maxPlayers;
             quantityInput.value = 1;
+            peopleLimitInfo.textContent = `Ten stół obsługuje maksymalnie ${maxPlayers} osób.`;
         } else {
             quantityInput.removeAttribute("max");
+            peopleLimitInfo.textContent = "";
         }
+
+        checkTableAvailability();
     });
 
     dateInput.addEventListener("change", function () {
         const selectedDate = this.value;
 
         if (selectedDate === todayString) {
-            const hours = String(today.getHours()).padStart(2, "0");
-            const minutes = String(today.getMinutes()).padStart(2, "0");
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+
             timeInput.min = `${hours}:${minutes}`;
         } else {
             timeInput.removeAttribute("min");
         }
+
+        checkTableAvailability();
     });
+
+    timeInput.addEventListener("change", function () {
+        checkTableAvailability();
+    });
+
+    quantityInput.addEventListener("input", function () {
+        const max = parseInt(quantityInput.max);
+        const value = parseInt(quantityInput.value);
+
+        if (!isNaN(max) && value > max) {
+            quantityInput.value = max;
+        }
+
+        if (value < 1) {
+            quantityInput.value = 1;
+        }
+    });
+
+    function checkTableAvailability() {
+        const tableId = tableSelect.value;
+        const date = dateInput.value;
+        const time = timeInput.value;
+        const duration = durationSelect.value;
+
+        availabilityMessage.innerHTML = "";
+        submitButton.disabled = false;
+
+        if (!tableId || !date || !time || !duration) {
+            return;
+        }
+
+        const url = `/Reservation/CheckTableAvailability?gameTableId=${encodeURIComponent(tableId)}&reservationDate=${encodeURIComponent(date)}&reservationTime=${encodeURIComponent(time)}&durationHours=${encodeURIComponent(duration)}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Błąd HTTP: " + response.status);
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    availabilityMessage.innerHTML = `<span class="text-danger">${data.message}</span>`;
+                    submitButton.disabled = true;
+                    return;
+                }
+
+                availabilityMessage.innerHTML = `<span class="text-success">${data.message}</span>`;
+                submitButton.disabled = false;
+            })
+            .catch(error => {
+                console.error("Błąd sprawdzania dostępności:", error);
+                console.error("Adres zapytania:", url);
+
+                availabilityMessage.innerHTML = `<span class="text-danger">Nie udało się sprawdzić dostępności stołu.</span>`;
+                submitButton.disabled = false;
+            });
+    }
 </script>

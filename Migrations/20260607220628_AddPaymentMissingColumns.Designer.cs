@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamblingBuddies.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260526231911_AddPayUFieldsToPayment")]
-    partial class AddPayUFieldsToPayment
+    [Migration("20260607220628_AddPaymentMissingColumns")]
+    partial class AddPaymentMissingColumns
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -40,6 +40,7 @@ namespace GamblingBuddies.Models
         public DbSet<DocumentFile> DocumentFiles { get; set; }
         public DbSet<GameCategoryDictionary> GameCategoryDictionaries { get; set; }
         public DbSet<SessionStatusDictionary> SessionStatusDictionaries { get; set; }
+        public DbSet<GameTableGame> GameTableGames { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -51,6 +52,34 @@ namespace GamblingBuddies.Models
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
+
+            modelBuilder.Entity<Hall>()
+                .HasOne(h => h.HallType)
+                .WithMany(ht => ht.Halls)
+                .HasForeignKey(h => h.HallTypeId);
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Position)
+                .WithMany(p => p.Employees)
+                .HasForeignKey(e => e.PositionId);
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Status)
+                .WithMany(s => s.Employees)
+                .HasForeignKey(e => e.EmployeeStatusId);
+
+            modelBuilder.Entity<GameTableGame>()
+                .HasKey(x => new { x.GameTableId, x.GameId });
+
+            modelBuilder.Entity<GameTableGame>()
+                .HasOne(x => x.GameTable)
+                .WithMany(t => t.GameTableGames)
+                .HasForeignKey(x => x.GameTableId);
+
+            modelBuilder.Entity<GameTableGame>()
+                .HasOne(x => x.Game)
+                .WithMany(g => g.GameTableGames)
+                .HasForeignKey(x => x.GameId);
         }
     }
 }

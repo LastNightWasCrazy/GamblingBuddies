@@ -4,6 +4,7 @@ using GamblingBuddies.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamblingBuddies.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608203449_FixEmployeeStatusRelation")]
+    partial class FixEmployeeStatusRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,21 +377,6 @@ namespace GamblingBuddies.Migrations
                     b.HasIndex("HallId");
 
                     b.ToTable("GameTables");
-                });
-
-            modelBuilder.Entity("GamblingBuddies.Models.GameTableGame", b =>
-                {
-                    b.Property<int>("GameTableId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GameTableId", "GameId");
-
-                    b.HasIndex("GameId");
-
-                    b.ToTable("GameTableGames");
                 });
 
             modelBuilder.Entity("GamblingBuddies.Models.GameVariant", b =>
@@ -1144,25 +1132,6 @@ namespace GamblingBuddies.Migrations
                     b.Navigation("Hall");
                 });
 
-            modelBuilder.Entity("GamblingBuddies.Models.GameTableGame", b =>
-                {
-                    b.HasOne("GamblingBuddies.Models.Game", "Game")
-                        .WithMany("GameTableGames")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GamblingBuddies.Models.GameTable", "GameTable")
-                        .WithMany("GameTableGames")
-                        .HasForeignKey("GameTableId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Game");
-
-                    b.Navigation("GameTable");
-                });
-
             modelBuilder.Entity("GamblingBuddies.Models.GameVariant", b =>
                 {
                     b.HasOne("GamblingBuddies.Models.Game", "Game")
@@ -1389,8 +1358,6 @@ namespace GamblingBuddies.Migrations
 
             modelBuilder.Entity("GamblingBuddies.Models.Game", b =>
                 {
-                    b.Navigation("GameTableGames");
-
                     b.Navigation("GameVariants");
                 });
 
@@ -1407,8 +1374,6 @@ namespace GamblingBuddies.Migrations
             modelBuilder.Entity("GamblingBuddies.Models.GameTable", b =>
                 {
                     b.Navigation("GameSessions");
-
-                    b.Navigation("GameTableGames");
 
                     b.Navigation("Seats");
                 });

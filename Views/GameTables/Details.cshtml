@@ -32,6 +32,36 @@
         </div>
     </div>
 
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h3 class="mb-3">Dostępne gry przy tym stole</h3>
+
+            @if (Model.GameTableGames != null && Model.GameTableGames.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var item in Model.GameTableGames)
+                    {
+                        <li class="list-group-item">
+                            <strong>@item.Game?.Name</strong>
+
+                            @if (!string.IsNullOrWhiteSpace(item.Game?.Description))
+                            {
+                                <br />
+                                <small class="text-muted">@item.Game.Description</small>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted mb-0">
+                    Do tego stołu nie przypisano jeszcze żadnych gier.
+                </p>
+            }
+        </div>
+    </div>
+
     <h3>Sesje przy tym stole</h3>
 
     <table class="table table-dark table-striped table-hover align-middle">

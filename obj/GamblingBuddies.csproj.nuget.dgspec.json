@@ -71,6 +71,10 @@
               "target": "Package",
               "version": "[9.0.15, )"
             },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[10.2.1, )"
+            },
             "iTextSharp.LGPLv2.Core": {
               "target": "Package",
               "version": "[3.7.12, )"

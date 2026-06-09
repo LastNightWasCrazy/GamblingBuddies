@@ -1,0 +1,92 @@
+﻿@model IEnumerable<GamblingBuddies.Models.Employee>
+
+@{
+    ViewData["Title"] = "Pracownicy";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Pracownicy</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <a asp-controller="Employees" asp-action="Create" class="btn btn-success mb-3">
+        Dodaj pracownika / managera
+    </a>
+
+    <table class="table table-dark table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Imię i nazwisko</th>
+                <th>Login</th>
+                <th>Email</th>
+                <th>Stanowisko</th>
+                <th>Status</th>
+                <th>Konto aktywne</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.FirstName @employee.LastName</td>
+                    <td>@employee.SystemUser?.Login</td>
+                    <td>@employee.SystemUser?.Email</td>
+                    <td>@employee.Position?.Name</td>
+                    <td>@employee.Status?.Name</td>
+                    <td>
+                        @if (employee.SystemUser?.IsActive == true)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Nie</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-controller="Employees"
+                           asp-action="Details"
+                           asp-route-id="@employee.EmployeeId"
+                           class="btn btn-info btn-sm">
+                            Szczegóły
+                        </a>
+
+                        <a asp-controller="Employees"
+                           asp-action="Edit"
+                           asp-route-id="@employee.EmployeeId"
+                           class="btn btn-warning btn-sm">
+                            Edytuj
+                        </a>
+
+                        <form asp-controller="Employees"
+                              asp-action="Delete"
+                              asp-route-id="@employee.EmployeeId"
+                              method="post"
+                              class="d-inline">
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Czy na pewno chcesz usunąć albo dezaktywować tego pracownika?');">
+                                Usuń
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

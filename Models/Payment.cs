@@ -15,6 +15,7 @@ namespace GamblingBuddies.Models
         public int PaymentStatusId { get; set; }
         public PaymentStatusDictionary PaymentStatus { get; set; }
 
+        [Range(0.01, 999999)]
         public decimal Amount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? PaidAt { get; set; }
