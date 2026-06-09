@@ -14,5 +14,7 @@
 
         public bool IsActive { get; set; }
         public ICollection<GameVariant> GameVariants { get; set; } = new List<GameVariant>();
+
+        public ICollection<GameTableGame> GameTableGames { get; set; } = new List<GameTableGame>();
     }
 }

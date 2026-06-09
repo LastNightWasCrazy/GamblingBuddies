@@ -20,6 +20,10 @@ namespace GamblingBuddies.Controllers
         {
             var tables = _context.GameTables
                 .Include(t => t.Hall)
+                .Include(t => t.GameTableGames)
+                    .ThenInclude(gtg => gtg.Game)
+                .OrderBy(t => t.Hall.Name)
+                .ThenBy(t => t.TableNumber)
                 .ToList();
 
             return View(tables);
@@ -29,18 +33,13 @@ namespace GamblingBuddies.Controllers
         {
             var table = _context.GameTables
                 .Include(t => t.Hall)
-                .Include(t => t.Seats)
+                .Include(t => t.GameTableGames)
+                    .ThenInclude(gtg => gtg.Game)
                 .Include(t => t.GameSessions)
                     .ThenInclude(gs => gs.GameVariant)
                         .ThenInclude(gv => gv.Game)
                 .Include(t => t.GameSessions)
                     .ThenInclude(gs => gs.SessionStatus)
-                .Include(t => t.GameSessions)
-                    .ThenInclude(gs => gs.Reservations)
-                        .ThenInclude(r => r.ReservationStatus)
-                .Include(t => t.GameSessions)
-                    .ThenInclude(gs => gs.Reservations)
-                        .ThenInclude(r => r.ReservationSeats)
                 .FirstOrDefault(t => t.GameTableId == id);
 
             if (table == null)
@@ -50,75 +49,10 @@ namespace GamblingBuddies.Controllers
         }
 
         [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var table = _context.GameTables.FirstOrDefault(t => t.GameTableId == id);
-
-            if (table == null)
-                return NotFound();
-
-            ViewBag.Halls = new SelectList(
-                _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
-                "HallId",
-                "Name",
-                table.HallId
-            );
-
-            return View(table);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(GameTable model)
-        {
-            var table = _context.GameTables.FirstOrDefault(t => t.GameTableId == model.GameTableId);
-
-            if (table == null)
-                return NotFound();
-
-            if (model.MinPlayers < 1)
-            {
-                ModelState.AddModelError("MinPlayers", "Minimalna liczba graczy musi być większa od 0.");
-            }
-
-            if (model.MaxPlayers < model.MinPlayers)
-            {
-                ModelState.AddModelError("MaxPlayers", "Maksymalna liczba graczy nie może być mniejsza niż minimalna.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Halls = new SelectList(
-                    _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
-                    "HallId",
-                    "Name",
-                    model.HallId
-                );
-
-                return View(model);
-            }
-
-            table.HallId = model.HallId;
-            table.TableNumber = model.TableNumber;
-            table.MinPlayers = model.MinPlayers;
-            table.MaxPlayers = model.MaxPlayers;
-            table.IsActive = model.IsActive;
-
-            _context.SaveChanges();
-
-            TempData["SuccessMessage"] = "Stół został zaktualizowany.";
-
-            return RedirectToAction("Index");
-        }
-
-        [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.Halls = new SelectList(
-                _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
-                "HallId",
-                "Name"
-            );
+            LoadHalls();
+            LoadGames();
 
             var model = new GameTable
             {
@@ -132,21 +66,14 @@ namespace GamblingBuddies.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(GameTable model)
+        public IActionResult Create(GameTable model, int[] selectedGameIds)
         {
             ModelState.Remove("Hall");
             ModelState.Remove("Seats");
             ModelState.Remove("GameSessions");
+            ModelState.Remove("GameTableGames");
 
-            if (model.MinPlayers < 1)
-            {
-                ModelState.AddModelError("MinPlayers", "Minimalna liczba graczy musi być większa od 0.");
-            }
-
-            if (model.MaxPlayers < model.MinPlayers)
-            {
-                ModelState.AddModelError("MaxPlayers", "Maksymalna liczba graczy nie może być mniejsza niż minimalna.");
-            }
+            ValidateGameTable(model, selectedGameIds);
 
             var tableNumberExists = _context.GameTables
                 .Any(t => t.TableNumber == model.TableNumber && t.HallId == model.HallId);
@@ -158,34 +85,200 @@ namespace GamblingBuddies.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Halls = new SelectList(
-                    _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
-                    "HallId",
-                    "Name",
-                    model.HallId
-                );
-
+                LoadHalls(model.HallId);
+                LoadGames(selectedGameIds);
                 return View(model);
             }
 
             _context.GameTables.Add(model);
             _context.SaveChanges();
 
-            for (int i = 1; i <= model.MaxPlayers; i++)
+            foreach (var gameId in selectedGameIds.Distinct())
             {
-                _context.Seats.Add(new Seat
+                _context.GameTableGames.Add(new GameTableGame
                 {
-                    TableId = model.GameTableId,
-                    SeatNumber = i,
-                    IsActive = true
+                    GameTableId = model.GameTableId,
+                    GameId = gameId
                 });
             }
 
             _context.SaveChanges();
 
-            TempData["SuccessMessage"] = "Stół został dodany.";
+            TempData["SuccessMessage"] = "Stół został dodany razem z przypisanymi grami.";
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var table = _context.GameTables
+                .Include(t => t.GameTableGames)
+                .FirstOrDefault(t => t.GameTableId == id);
+
+            if (table == null)
+                return NotFound();
+
+            var selectedGameIds = table.GameTableGames
+                .Select(gtg => gtg.GameId)
+                .ToArray();
+
+            LoadHalls(table.HallId);
+            LoadGames(selectedGameIds);
+
+            return View(table);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(GameTable model, int[] selectedGameIds)
+        {
+            ModelState.Remove("Hall");
+            ModelState.Remove("Seats");
+            ModelState.Remove("GameSessions");
+            ModelState.Remove("GameTableGames");
+
+            var table = _context.GameTables
+                .Include(t => t.GameTableGames)
+                .FirstOrDefault(t => t.GameTableId == model.GameTableId);
+
+            if (table == null)
+                return NotFound();
+
+            ValidateGameTable(model, selectedGameIds);
+
+            var tableNumberExists = _context.GameTables
+                .Any(t =>
+                    t.GameTableId != model.GameTableId &&
+                    t.TableNumber == model.TableNumber &&
+                    t.HallId == model.HallId);
+
+            if (tableNumberExists)
+            {
+                ModelState.AddModelError("TableNumber", "W tej sali istnieje już stół o takim numerze.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                LoadHalls(model.HallId);
+                LoadGames(selectedGameIds);
+                return View(model);
+            }
+
+            table.HallId = model.HallId;
+            table.TableNumber = model.TableNumber;
+            table.MinPlayers = model.MinPlayers;
+            table.MaxPlayers = model.MaxPlayers;
+            table.IsActive = model.IsActive;
+
+            var oldAssignments = table.GameTableGames.ToList();
+            _context.GameTableGames.RemoveRange(oldAssignments);
+
+            foreach (var gameId in selectedGameIds.Distinct())
+            {
+                _context.GameTableGames.Add(new GameTableGame
+                {
+                    GameTableId = table.GameTableId,
+                    GameId = gameId
+                });
+            }
+
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Stół został zaktualizowany.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            var table = _context.GameTables
+                .Include(t => t.GameTableGames)
+                .FirstOrDefault(t => t.GameTableId == id);
+
+            if (table == null)
+                return NotFound();
+
+            var hasSessions = _context.GameSessions
+                .Any(gs => gs.GameTableId == id);
+
+            if (hasSessions)
+            {
+                table.IsActive = false;
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Stół ma powiązane sesje, więc został tylko dezaktywowany.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            _context.GameTableGames.RemoveRange(table.GameTableGames);
+            _context.GameTables.Remove(table);
+
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Stół został usunięty.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        private void ValidateGameTable(GameTable model, int[] selectedGameIds)
+        {
+            if (model.HallId <= 0)
+            {
+                ModelState.AddModelError("HallId", "Wybierz salę.");
+            }
+
+            if (model.TableNumber < 1)
+            {
+                ModelState.AddModelError("TableNumber", "Numer stołu musi być większy od 0.");
+            }
+
+            if (model.MinPlayers < 1)
+            {
+                ModelState.AddModelError("MinPlayers", "Minimalna liczba graczy musi być większa od 0.");
+            }
+
+            if (model.MaxPlayers < model.MinPlayers)
+            {
+                ModelState.AddModelError("MaxPlayers", "Maksymalna liczba graczy nie może być mniejsza niż minimalna.");
+            }
+
+            if (model.MaxPlayers > 20)
+            {
+                ModelState.AddModelError("MaxPlayers", "Maksymalna liczba graczy nie może być większa niż 20.");
+            }
+
+            if (selectedGameIds == null || selectedGameIds.Length == 0)
+            {
+                ModelState.AddModelError("", "Wybierz przynajmniej jedną grę dla stołu.");
+            }
+        }
+
+        private void LoadHalls(int? selectedHallId = null)
+        {
+            ViewBag.Halls = new SelectList(
+                _context.Halls
+                    .Where(h => h.IsActive)
+                    .OrderBy(h => h.Name)
+                    .ToList(),
+                "HallId",
+                "Name",
+                selectedHallId
+            );
+        }
+
+        private void LoadGames(int[]? selectedGameIds = null)
+        {
+            selectedGameIds ??= Array.Empty<int>();
+
+            ViewBag.Games = _context.Games
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.Name)
+                .ToList();
+
+            ViewBag.SelectedGameIds = selectedGameIds;
         }
     }
 }

@@ -19,5 +19,6 @@
 
         public ICollection<Seat> Seats { get; set; } = new List<Seat>();
         public ICollection<GameSession> GameSessions { get; set; } = new List<GameSession>();
+        public ICollection<GameTableGame> GameTableGames { get; set; } = new List<GameTableGame>();
     }
 }
