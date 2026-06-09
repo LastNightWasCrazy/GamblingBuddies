@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lezak\\Downloads\\GamblingBuddies\\GamblingBuddies.csproj": {}
+    "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lezak\\Downloads\\GamblingBuddies\\GamblingBuddies.csproj": {
+    "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lezak\\Downloads\\GamblingBuddies\\GamblingBuddies.csproj",
+        "projectUniqueName": "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj",
         "projectName": "GamblingBuddies",
-        "projectPath": "C:\\Users\\lezak\\Downloads\\GamblingBuddies\\GamblingBuddies.csproj",
+        "projectPath": "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj",
         "packagesPath": "C:\\Users\\lezak\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lezak\\Downloads\\GamblingBuddies\\obj\\",
+        "outputPath": "C:\\Users\\lezak\\Desktop\\projekt\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
