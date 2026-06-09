@@ -1,4 +1,4 @@
-﻿using System.Reflection.Metadata;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GamblingBuddies.Models
 {
@@ -7,18 +7,20 @@ namespace GamblingBuddies.Models
         public int PaymentId { get; set; }
 
         public int ReservationId { get; set; }
-        public Reservation Reservation { get; set; }
+        public Reservation Reservation { get; set; } = null!;
 
         public int PaymentMethodId { get; set; }
-        public PaymentMethodDictionary PaymentMethod { get; set; }
+        public PaymentMethodDictionary PaymentMethod { get; set; } = null!;
 
         public int PaymentStatusId { get; set; }
-        public PaymentStatusDictionary PaymentStatus { get; set; }
+        public PaymentStatusDictionary PaymentStatus { get; set; } = null!;
 
         [Range(0.01, 999999)]
         public decimal Amount { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? PaidAt { get; set; }
+
         public string? ExternalOrderId { get; set; }
         public string? PaymentProviderOrderId { get; set; }
         public string? PaymentProvider { get; set; }

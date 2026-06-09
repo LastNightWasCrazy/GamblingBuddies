@@ -11,6 +11,22 @@
         <span class="badge bg-secondary fs-6">Panel administracyjny</span>
     </div>
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
@@ -20,7 +36,8 @@
                         <th>ID</th>
                         <th>Gracz</th>
                         <th>Sesja gry</th>
-                        <th>Status</th>
+                        <th>Status rezerwacji</th>
+                        <th>Status płatności</th>
                         <th>Data rezerwacji</th>
                         <th>Akcje</th>
                     </tr>
@@ -29,6 +46,10 @@
                 <tbody>
                     @foreach (var reservation in Model)
                     {
+                        var latestPayment = reservation.Payments?
+                        .OrderByDescending(p => p.CreatedAt)
+                        .FirstOrDefault();
+
                         <tr>
                             <td>@reservation.ReservationId</td>
 
@@ -45,21 +66,25 @@
                             </td>
 
                             <td>
+                                @(latestPayment?.PaymentStatus?.Name ?? "Brak płatności")
+                            </td>
+
+                            <td>
                                 @reservation.ReservedAt.ToString("yyyy-MM-dd HH:mm")
                             </td>
 
                             <td>
                                 <a class="btn btn-sm btn-primary"
-                                       asp-controller="Reservations"
-                                       asp-action="Details"
-                                       asp-route-id="@reservation.ReservationId">
+                                   asp-controller="Reservations"
+                                   asp-action="Details"
+                                   asp-route-id="@reservation.ReservationId">
                                     Szczegóły
                                 </a>
 
                                 <a class="btn btn-sm btn-warning"
-                                       asp-controller="Reservations"
-                                       asp-action="Edit"
-                                       asp-route-id="@reservation.ReservationId">
+                                   asp-controller="Reservations"
+                                   asp-action="Edit"
+                                   asp-route-id="@reservation.ReservationId">
                                     Edytuj
                                 </a>
 
