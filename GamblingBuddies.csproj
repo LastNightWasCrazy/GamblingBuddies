@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GamblingBuddies.Tests\**\*.cs" />
+    <Content Remove="GamblingBuddies.Tests\**\*" />
+    <EmbeddedResource Remove="GamblingBuddies.Tests\**\*" />
+    <None Remove="GamblingBuddies.Tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.7.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.15">
