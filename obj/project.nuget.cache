@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BU+t2264lXg=",
+  "dgSpecHash": "hW4BWvB5oMw=",
   "success": true,
-  "projectFilePath": "C:\\Users\\XXXX\\source\\repos\\GamblingBuddies\\GamblingBuddies.csproj",
+  "projectFilePath": "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\XXXX\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\XXXX\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

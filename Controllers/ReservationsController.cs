@@ -192,5 +192,62 @@ namespace GamblingBuddies.Controllers
         {
             return _context.Reservations.Any(e => e.ReservationId == id);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Confirm(int id)
+        {
+            var reservation = _context.Reservations
+                .FirstOrDefault(r => r.ReservationId == id);
+
+            if (reservation == null)
+                return NotFound();
+
+            var confirmedStatus = _context.ReservationStatusDictionaries
+                .FirstOrDefault(s => s.Name == "Confirmed");
+
+            if (confirmedStatus == null)
+            {
+                TempData["ErrorMessage"] = "Brak statusu Confirmed w bazie.";
+                return RedirectToAction("Index");
+            }
+
+            reservation.ReservationStatusId = confirmedStatus.ReservationStatusId;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Rezerwacja została zatwierdzona.";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Cancel(int id)
+        {
+            var reservation = _context.Reservations
+                .FirstOrDefault(r => r.ReservationId == id);
+
+            if (reservation == null)
+                return NotFound();
+
+            var cancelledStatus = _context.ReservationStatusDictionaries
+                .FirstOrDefault(s => s.Name == "Cancelled");
+
+            if (cancelledStatus == null)
+            {
+                cancelledStatus = new ReservationStatusDictionary
+                {
+                    Name = "Cancelled",
+                    Description = "Anulowana"
+                };
+
+                _context.ReservationStatusDictionaries.Add(cancelledStatus);
+                _context.SaveChanges();
+            }
+
+            reservation.ReservationStatusId = cancelledStatus.ReservationStatusId;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Rezerwacja została anulowana.";
+            return RedirectToAction("Index");
+        }
     }
 }

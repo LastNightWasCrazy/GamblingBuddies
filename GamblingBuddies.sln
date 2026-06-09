@@ -1,11 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.5.11716.220
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37314.3 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamblingBuddies", "GamblingBuddies.csproj", "{2F1C67A5-A5FA-47DF-AC14-5DCE2B1D83A1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamblingBuddies.Tests", "GamblingBuddies.Tests\GamblingBuddies.Tests.csproj", "{AA35C53E-53CF-4F4E-AA5D-B698B965DA0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestData", "TestData", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		TestDataGenerator.cs = TestDataGenerator.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{64B082EE-DB97-4C3B-BB6E-B3C1E70F6201}"
+	ProjectSection(SolutionItems) = preProject
+		SystemTestScenarios.md = SystemTestScenarios.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
