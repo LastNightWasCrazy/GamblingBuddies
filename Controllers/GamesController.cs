@@ -111,44 +111,66 @@ namespace GamblingBuddies.Controllers
         public IActionResult Edit(int id)
         {
             var game = _context.Games
+                .AsNoTracking()
                 .FirstOrDefault(g => g.GameId == id);
 
             if (game == null)
+            {
                 return NotFound();
+            }
+
+            var model = new GameEditViewModel
+            {
+                GameId = game.GameId,
+                Name = game.Name,
+                GameCategoryId = game.GameCategoryId,
+                Description = game.Description,
+                IsActive = game.IsActive
+            };
 
             LoadCategories(game.GameCategoryId);
 
-            return View(game);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Game model)
+        public IActionResult Edit(GameEditViewModel model)
         {
-            var game = _context.Games
-                .FirstOrDefault(g => g.GameId == model.GameId);
-
-            if (game == null)
-                return NotFound();
-
             if (string.IsNullOrWhiteSpace(model.Name))
             {
-                ModelState.AddModelError("Name", "Nazwa gry jest wymagana.");
+                ModelState.AddModelError(nameof(model.Name), "Nazwa gry jest wymagana.");
+            }
+
+            var categoryExists = _context.GameCategoryDictionaries
+                .Any(c => c.GameCategoryId == model.GameCategoryId);
+
+            if (!categoryExists)
+            {
+                ModelState.AddModelError(nameof(model.GameCategoryId), "Wybrana kategoria nie istnieje.");
             }
 
             var duplicateName = _context.Games.Any(g =>
                 g.GameId != model.GameId &&
-                g.Name == model.Name);
+                g.Name == model.Name.Trim());
 
             if (duplicateName)
             {
-                ModelState.AddModelError("Name", "Gra o takiej nazwie już istnieje.");
+                ModelState.AddModelError(nameof(model.Name), "Gra o takiej nazwie już istnieje.");
             }
 
             if (!ModelState.IsValid)
             {
                 LoadCategories(model.GameCategoryId);
                 return View(model);
+            }
+
+            var game = _context.Games
+                .FirstOrDefault(g => g.GameId == model.GameId);
+
+            if (game == null)
+            {
+                return NotFound();
             }
 
             game.Name = model.Name.Trim();
