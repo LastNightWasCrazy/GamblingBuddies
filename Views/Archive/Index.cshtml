@@ -1,0 +1,111 @@
+﻿@model IEnumerable<GamblingBuddies.Controllers.ArchivedFileViewModel>
+
+@{
+    ViewData["Title"] = "Archiwum raportów";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="mb-0">Archiwum raportów PDF</h1>
+        @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
+        {
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                + Prześlij raport PDF
+            </button>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nazwa pliku</th>
+                            <th>Rozmiar</th>
+                            <th>Data dodania</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in Model)
+                        {
+                            <tr>
+                                <td>@file.FileName</td>
+                                <td>@(file.FileSize / 1024) KB</td>
+                                <td>@file.UploadDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a asp-action="Download"
+                                           asp-route-fileName="@file.FileName"
+                                           class="btn btn-sm btn-primary">
+                                            Pobierz
+                                        </a>
+
+                                        @if (User.IsInRole("Administrator"))
+                                        {
+                                            <form asp-action="Delete"
+                                                  asp-route-fileName="@file.FileName"
+                                                  method="post"
+                                                  onsubmit="return confirm('Czy na pewno usunąć ten plik?')"
+                                                  class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    Usuń
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                 </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center m-3">Brak plików w archiwum. Prześlij pierwszy raport PDF.</div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header" style="background-color: #8b0000; color: white;">
+                <h5 class="modal-title" id="uploadModalLabel">Prześlij raport PDF</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Wybierz plik PDF</label>
+                        <input type="file" name="file" class="form-control" accept=".pdf" required />
+                        <small class="text-muted">Dozwolone tylko pliki PDF.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <button type="submit" class="btn btn-success">Prześlij</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

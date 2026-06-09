@@ -1,0 +1,96 @@
+﻿@model GamblingBuddies.Models.GameCreateViewModel
+
+@{
+    ViewData["Title"] = "Dodaj grę";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header" style="background-color: #8b0000; color: white;">
+                    <h3 class="mb-0">Dodaj grę i wariant</h3>
+                </div>
+
+                <div class="card-body">
+                    <form asp-controller="Games" asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <h5 class="mb-3">Dane gry</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="np. Wojna" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GameCategoryId" class="form-label fw-bold"></label>
+                            <select asp-for="GameCategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                <option value="">-- wybierz kategorię --</option>
+                            </select>
+                            <span asp-validation-for="GameCategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Krótki opis gry"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label"></label>
+                        </div>
+
+                        <hr />
+
+                        <h5 class="mb-3">Domyślny wariant gry</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="VariantName" class="form-label fw-bold"></label>
+                            <input asp-for="VariantName" class="form-control" placeholder="np. Wojna klasyczna" />
+                            <span asp-validation-for="VariantName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RulesDescription" class="form-label fw-bold"></label>
+                            <textarea asp-for="RulesDescription" class="form-control" rows="3" placeholder="Opis zasad wariantu"></textarea>
+                            <span asp-validation-for="RulesDescription" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DefaultMinBet" class="form-label fw-bold"></label>
+                                <input asp-for="DefaultMinBet" class="form-control" type="number" step="0.01" min="0.01" />
+                                <span asp-validation-for="DefaultMinBet" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DefaultMaxBet" class="form-label fw-bold"></label>
+                                <input asp-for="DefaultMaxBet" class="form-control" type="number" step="0.01" min="0.01" />
+                                <span asp-validation-for="DefaultMaxBet" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="VariantIsActive" class="form-check-input" />
+                            <label asp-for="VariantIsActive" class="form-check-label"></label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Dodaj grę</button>
+                            <a asp-action="Index" class="btn btn-secondary">Wróć</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

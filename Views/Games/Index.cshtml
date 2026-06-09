@@ -6,6 +6,13 @@
 
 <div class="container mt-4">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Gry</h1>
         <a class="btn btn-success" asp-controller="Games" asp-action="Create">
@@ -22,6 +29,7 @@
                         <th>Nazwa</th>
                         <th>Kategoria</th>
                         <th>Opis</th>
+                        <th>Warianty</th>
                         <th>Status</th>
                         <th>Akcje</th>
                     </tr>
@@ -34,6 +42,7 @@
                             <td>@game.Name</td>
                             <td>@game.GameCategory?.Name</td>
                             <td>@game.Description</td>
+                            <td>@game.GameVariants.Count</td>
                             <td>
                                 @if (game.IsActive)
                                 {

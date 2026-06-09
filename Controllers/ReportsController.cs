@@ -16,10 +16,12 @@ namespace GamblingBuddies.Controllers
     public class ReportsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ReportsController(AppDbContext context)
+        public ReportsController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -67,12 +69,22 @@ namespace GamblingBuddies.Controllers
 
                 byte[] pdfBytes = GeneratePdfReport(payments, startDate, endDate, paymentMethod, status, totalAmount, transactionsCount, averageAmount);
 
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "reports");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                string fileName = $"Raport_platnosci_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                string filePath = Path.Combine(uploadsFolder, fileName);
+                await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+
                 int userId = GetCurrentUserId();
 
                 var paymentReport = new PaymentReport
                 {
-                    ReportName = $"Raport płatności_{DateTime.Now:yyyyMMdd_HHmmss}",
-                    Description = $"Raport płatności za okres {startDate?.ToShortDateString() ?? "od początku"} - {endDate?.ToShortDateString() ?? "do teraz"}",
+                    ReportName = $"Raport platnosci_{DateTime.Now:yyyyMMdd_HHmmss}",
+                    Description = $"Raport platnosci za okres {startDate?.ToShortDateString() ?? "od poczatku"} - {endDate?.ToShortDateString() ?? "do czasu wygenerowania"}",
                     GeneratedDate = DateTime.Now,
                     StartDate = startDate,
                     EndDate = endDate,
@@ -80,13 +92,14 @@ namespace GamblingBuddies.Controllers
                     TransactionsCount = transactionsCount,
                     FiltersApplied = $"{{\"paymentMethod\":\"{paymentMethod}\",\"status\":\"{status}\"}}",
                     GeneratedByUserId = userId,
-                    PdfFilePath = null
+                    PdfFilePath = $"/uploads/reports/{fileName}"
                 };
 
                 _context.PaymentReports.Add(paymentReport);
                 await _context.SaveChangesAsync();
 
-                return File(pdfBytes, "application/pdf", $"Raport_platnosci_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+                TempData["Success"] = $"Raport został wygenerowany i zapisany w archiwum jako {fileName}";
+                return RedirectToAction(nameof(PaymentReport));
             }
             catch (Exception ex)
             {
@@ -126,6 +139,15 @@ namespace GamblingBuddies.Controllers
             var report = await _context.PaymentReports.FindAsync(id);
             if (report != null)
             {
+                if (!string.IsNullOrEmpty(report.PdfFilePath))
+                {
+                    string filePath = Path.Combine(_webHostEnvironment.WebRootPath, report.PdfFilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+
                 _context.PaymentReports.Remove(report);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Raport został usunięty.";
@@ -166,18 +188,18 @@ namespace GamblingBuddies.Controllers
 
                 document.Add(new iTextSharp.text.Paragraph("Informacje o raporcie:", boldFont));
                 document.Add(new iTextSharp.text.Paragraph($"Data generowania: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", normalFont));
-                document.Add(new iTextSharp.text.Paragraph($"Okres od: {startDate?.ToShortDateString() ?? "od początku"} do: {endDate?.ToShortDateString() ?? "do teraz"}", normalFont));
-                document.Add(new iTextSharp.text.Paragraph($"Metoda płatności: {paymentMethod ?? "Wszystkie"}", normalFont));
+                document.Add(new iTextSharp.text.Paragraph($"Okres od: {startDate?.ToShortDateString() ?? "od poczatku"} do: {endDate?.ToShortDateString() ?? "do czasu wygenerowania"}", normalFont));
+                document.Add(new iTextSharp.text.Paragraph($"Metoda platnosci: {paymentMethod ?? "Wszystkie"}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph($"Status: {status ?? "Wszystkie"}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph(" "));
 
                 document.Add(new iTextSharp.text.Paragraph("Podsumowanie statystyczne:", boldFont));
                 document.Add(new iTextSharp.text.Paragraph($"Liczba transakcji: {transactionsCount}", normalFont));
-                document.Add(new iTextSharp.text.Paragraph($"Łączna wartość: {totalAmount:C}", normalFont));
-                document.Add(new iTextSharp.text.Paragraph($"Średnia wartość transakcji: {averageAmount:C}", normalFont));
+                document.Add(new iTextSharp.text.Paragraph($"Laczna wartosc: {totalAmount:C}", normalFont));
+                document.Add(new iTextSharp.text.Paragraph($"Srednia wartosc transakcji: {averageAmount:C}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph(" "));
 
-                document.Add(new iTextSharp.text.Paragraph("Szczegółowa lista płatności:", boldFont));
+                document.Add(new iTextSharp.text.Paragraph("Szczegolowa lista platnosci:", boldFont));
                 document.Add(new iTextSharp.text.Paragraph(" "));
 
                 PdfPTable table = new PdfPTable(7);

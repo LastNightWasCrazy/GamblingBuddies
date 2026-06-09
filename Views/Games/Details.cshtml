@@ -1,70 +1,344 @@
 ﻿@model GamblingBuddies.Models.Game
+@using Microsoft.EntityFrameworkCore
 @inject GamblingBuddies.Models.AppDbContext _context
 
 @{
     ViewData["Title"] = "Szczegóły gry";
+
+    var variants = Model.GameVariants != null && Model.GameVariants.Any()
+        ? Model.GameVariants.ToList()
+        : _context.GameVariants
+            .Where(v => v.GameId == Model.GameId)
+            .OrderBy(v => v.Name)
+            .ToList();
+
+    var variantIds = variants.Select(v => v.GameVariantId).ToList();
+
+    var sessions = _context.GameSessions
+        .Include(s => s.GameTable)
+        .Include(s => s.SessionStatus)
+        .Where(s => variantIds.Contains(s.GameVariantId))
+        .OrderBy(s => s.StartAt)
+        .ToList();
+
+    var activeVariantsCount = variants.Count(v => v.IsActive);
+    var allSessionsCount = sessions.Count;
+    var futureSessionsCount = sessions.Count(s => s.StartAt >= DateTime.Now);
 }
 
 <div class="container mt-4">
 
-    <h1 class="mb-4">@Model.Name</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">@Model.Name</h1>
+            <span class="text-muted">Szczegóły gry, warianty i sesje</span>
+        </div>
+
+        <a asp-controller="Games"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Wróć
+        </a>
+    </div>
+
+    @if (!Model.IsActive)
+    {
+        <div class="alert alert-danger">
+            Ta gra jest nieaktywna, więc nie powinna być dostępna do nowych rezerwacji.
+        </div>
+    }
+    else if (activeVariantsCount == 0)
+    {
+        <div class="alert alert-warning">
+            Ta gra jest aktywna, ale nie ma żadnego aktywnego wariantu. Rezerwacja może się nie udać.
+        </div>
+    }
+    else if (futureSessionsCount == 0)
+    {
+        <div class="alert alert-warning">
+            Gra ma aktywny wariant, ale nie ma przyszłej sesji gry. Do rezerwacji potrzebna jest jeszcze sesja na stole.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            Gra ma aktywny wariant i przyszłą sesję. Powinna być możliwa do rezerwacji.
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white">
+                    Dane podstawowe
+                </div>
+
+                <div class="card-body">
+
+                    <p>
+                        <strong>ID gry:</strong>
+                        @Model.GameId
+                    </p>
+
+                    <p>
+                        <strong>Nazwa:</strong>
+                        @Model.Name
+                    </p>
+
+                    <p>
+                        <strong>Kategoria:</strong>
+                        @(Model.GameCategory?.Name ?? "Brak kategorii")
+                    </p>
+
+                    <p>
+                        <strong>Opis kategorii:</strong><br />
+                        @(Model.GameCategory?.Description ?? "Brak opisu kategorii")
+                    </p>
+
+                    <p>
+                        <strong>Opis gry:</strong><br />
+                        @(string.IsNullOrWhiteSpace(Model.Description) ? "Brak opisu gry" : Model.Description)
+                    </p>
+
+                    <p>
+                        <strong>Status gry:</strong>
+
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Aktywna</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Nieaktywna</span>
+                        }
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white">
+                    Podsumowanie
+                </div>
+
+                <div class="card-body">
+
+                    <p>
+                        <strong>Liczba wariantów:</strong>
+                        @variants.Count
+                    </p>
+
+                    <p>
+                        <strong>Aktywne warianty:</strong>
+                        @activeVariantsCount
+                    </p>
+
+                    <p>
+                        <strong>Wszystkie sesje gry:</strong>
+                        @allSessionsCount
+                    </p>
+
+                    <p>
+                        <strong>Przyszłe sesje gry:</strong>
+                        @futureSessionsCount
+                    </p>
+
+                    <p>
+                        <strong>Czy można rezerwować:</strong>
+
+                        @if (Model.IsActive && activeVariantsCount > 0 && futureSessionsCount > 0)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Nie / wymaga uzupełnienia danych</span>
+                        }
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
 
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
+        <div class="card-header bg-dark text-white">
+            Warianty gry
+        </div>
 
-            <p>
-                <strong>Kategoria:</strong>
-                @Model.GameCategory?.Name
-            </p>
+        <div class="card-body p-0">
 
-            <p>
-                <strong>Opis:</strong><br />
-                @Model.Description
-            </p>
+            @if (!variants.Any())
+            {
+                <div class="p-3">
+                    Brak dodanych wariantów dla tej gry.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nazwa wariantu</th>
+                                <th>Opis zasad</th>
+                                <th>Min. stawka</th>
+                                <th>Max. stawka</th>
+                                <th>Status</th>
+                                <th>Liczba sesji</th>
+                                <th>Najbliższa sesja</th>
+                            </tr>
+                        </thead>
 
-            <p>
-                <strong>Status:</strong>
+                        <tbody>
+                            @foreach (var variant in variants)
+                            {
+                                var variantSessions = sessions
+                                .Where(s => s.GameVariantId == variant.GameVariantId)
+                                .ToList();
 
-                @if (Model.IsActive)
-                {
-                    <span class="badge bg-success">Aktywna</span>
-                }
-                else
-                {
-                    <span class="badge bg-danger">Nieaktywna</span>
-                }
-            </p>
+                                var nearestSession = variantSessions
+                                .Where(s => s.StartAt >= DateTime.Now)
+                                .OrderBy(s => s.StartAt)
+                                .FirstOrDefault();
+
+                                <tr>
+                                    <td>@variant.GameVariantId</td>
+
+                                    <td>@variant.Name</td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(variant.RulesDescription)
+                                                                        ? "Brak opisu zasad"
+                                                                        : variant.RulesDescription)
+                            </td>
+
+                                    <td>@variant.DefaultMinBet.ToString("0.00") zł</td>
+
+                                    <td>@variant.DefaultMaxBet.ToString("0.00") zł</td>
+
+                                    <td>
+                                @if (variant.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktywny</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Nieaktywny</span>
+                                        }
+                                    </td>
+
+                                    <td>@variantSessions.Count</td>
+
+                                    <td>
+                                        @if (nearestSession != null)
+                                        {
+                                            <span>
+                                                @nearestSession.StartAt.ToString("dd.MM.yyyy HH:mm")
+                                                -
+                                                @nearestSession.EndAt.ToString("HH:mm")
+                                            </span>
+                                            <br />
+                                            <small class="text-muted">
+                                                Stół:
+                                                @(nearestSession.GameTable != null
+                                                                                    ? nearestSession.GameTable.TableNumber.ToString()
+                                                                                    : "brak danych")
+                                </small>
+                                                                }
+                                        else
+                                        {
+                                            <span class="text-muted">Brak przyszłej sesji</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
 
         </div>
     </div>
 
-    <h3>Warianty gry</h3>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white">
+            Sesje gry
+        </div>
 
-    <table class="table table-dark table-striped table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Nazwa wariantu</th>
-                <th>Liczba sesji</th>
-            </tr>
-        </thead>
+        <div class="card-body p-0">
 
-        <tbody>
-            @foreach (var variant in Model.GameVariants)
+            @if (!sessions.Any())
             {
-                <tr>
-                    <td>@variant.Name</td>
-                    <td>
-                        @_context.GameSessions.Count(s => s.GameVariantId == variant.GameVariantId)
-                    </td>
-                </tr>
+                <div class="p-3">
+                    Brak sesji dla wariantów tej gry.
+                </div>
             }
-        </tbody>
-    </table>
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID sesji</th>
+                                <th>Wariant</th>
+                                <th>Stół</th>
+                                <th>Start</th>
+                                <th>Koniec</th>
+                                <th>Status sesji</th>
+                            </tr>
+                        </thead>
 
-    <a asp-controller="Games"
-       asp-action="Index"
-       class="btn btn-secondary">
-        Wróć
-    </a>
+                        <tbody>
+                            @foreach (var session in sessions)
+                            {
+                                var variant = variants.FirstOrDefault(v => v.GameVariantId == session.GameVariantId);
+
+                                <tr>
+                                    <td>@session.GameSessionId</td>
+
+                                    <td>@(variant?.Name ?? "Brak wariantu")</td>
+
+                                    <td>
+                                        @(session.GameTable != null
+                                                                        ? session.GameTable.TableNumber.ToString()
+                                                                        : "Brak stołu")
+                            </td>
+
+                                    <td>@session.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
+
+                                    <td>@session.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
+
+                                    <td>
+                                        @(session.SessionStatus?.Name ?? "Brak statusu")
+                                    </td>
+                                </tr>
+                                                }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-controller="Games"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Wróć
+        </a>
+
+        <a asp-controller="Games"
+           asp-action="Create"
+           class="btn btn-primary">
+            Dodaj nową grę
+        </a>
+    </div>
 
 </div>
