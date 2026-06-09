@@ -15,6 +15,66 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Administrator,Manager")]
+        [ValidateAntiForgeryToken]
+        public IActionResult Confirm(int id)
+        {
+            var reservation = _context.Reservations
+                .FirstOrDefault(r => r.ReservationId == id);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            var confirmedStatus = _context.ReservationStatusDictionaries
+                .FirstOrDefault(s => s.Name == "Confirmed");
+
+            if (confirmedStatus == null)
+            {
+                TempData["Error"] = "Brak statusu rezerwacji Confirmed w bazie.";
+                return RedirectToAction("Go");
+            }
+
+            reservation.ReservationStatusId = confirmedStatus.ReservationStatusId;
+            _context.SaveChanges();
+
+            TempData["Success"] = "Rezerwacja została potwierdzona.";
+
+            return RedirectToAction("Go");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Administrator,Manager")]
+        [ValidateAntiForgeryToken]
+        public IActionResult Cancel(int id)
+        {
+            var reservation = _context.Reservations
+                .FirstOrDefault(r => r.ReservationId == id);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            var cancelledStatus = _context.ReservationStatusDictionaries
+                .FirstOrDefault(s => s.Name == "Cancelled");
+
+            if (cancelledStatus == null)
+            {
+                TempData["Error"] = "Brak statusu rezerwacji Cancelled w bazie.";
+                return RedirectToAction("Go");
+            }
+
+            reservation.ReservationStatusId = cancelledStatus.ReservationStatusId;
+            _context.SaveChanges();
+
+            TempData["Success"] = "Rezerwacja została anulowana.";
+
+            return RedirectToAction("Go");
+        }
+
         public IActionResult Index()
         {
             var reservations = _context.Reservations
@@ -90,6 +150,12 @@ namespace GamblingBuddies.Controllers
             {
                 return NotFound();
             }
+
+            ModelState.Remove("Player");
+            ModelState.Remove("GameSession");
+            ModelState.Remove("ReservationStatus");
+            ModelState.Remove("ReservationSeats");
+            ModelState.Remove("Payments");
 
             if (!ModelState.IsValid)
             {
