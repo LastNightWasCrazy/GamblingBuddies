@@ -64,31 +64,32 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-light" asp-controller="Reports" asp-action="Index">Raporty</a>
                                 </li>
-                                <a asp-controller="EmployeesSchedule"
-                                   asp-action="CreateWorkShift"
-                                   class="nav-link text-light">
-                                    Dodaj zmianę
-                                </a>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="Archive" asp-action="Index">Archiwum PDF</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="EmployeesSchedule" asp-action="CreateWorkShift">Dodaj zmianę</a>
+                                </li>
+
                                 <li class="nav-item">
                                     <a class="nav-link text-light" asp-controller="EmployeesSchedule" asp-action="WorkShifts">
                                         Zmiany pracowników
                                     </a>
                                 </li>
-                                    <a asp-controller="EmployeesSchedule"
-                                       asp-action="CreateAssignment"
-                                       class="nav-link text-light">
-                                        Dodaj przypisanie
-                                    </a>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="EmployeesSchedule" asp-action="CreateAssignment">Dodaj przypisanie</a>
+                                </li>
+
                                 <li class="nav-item">
                                     <a class="nav-link text-light" asp-controller="EmployeesSchedule" asp-action="Assignments">
                                         Przypisania pracowników
                                     </a>
                                 </li>
 
-                                <li class="nav-item">
-                                   <a class="nav-link text-dark"
-                                        asp-controller="Employees"
-                                        asp-action="Index">
+                                <li class="nav-item"> <a class="nav-link text-light" asp-controller="Employees" asp-action="Index">
                                         Pracownicy
                                    </a>
                                 </li>
@@ -97,19 +98,19 @@
                             @if (User.IsInRole("Manager"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-light" asp-controller="ManagerPanel" asp-action="Index">Panel managera</a>
-                                </li>
-
-                                <li class="nav-item">
                                     <a class="nav-link text-light" asp-controller="GameTables" asp-action="Index">Stoły</a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-light" asp-controller="GameSessions" asp-action="Index">Sesje</a>
+                                    <a class="nav-link text-light" asp-controller="Games" asp-action="Index">Gry</a>
                                 </li>
 
                                 <li class="nav-item">
                                     <a class="nav-link text-light" asp-controller="Reservations" asp-action="Index">Rezerwacje</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="Archive" asp-action="Index">Archiwum PDF</a>
                                 </li>
                             }
 
@@ -125,6 +126,10 @@
                                     <a class="nav-link text-light" asp-controller="EmployeesSchedule" asp-action="Assignments">
                                         Przypisania pracowników
                                     </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="Archive" asp-action="Index">Archiwum PDF</a>
                                 </li>
                             }
                         }
