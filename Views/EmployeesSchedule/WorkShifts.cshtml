@@ -3,23 +3,42 @@
 @{
     ViewData["Title"] = "Zmiany pracowników";
     bool isAdmin = User.IsInRole("Administrator");
+    bool isAdminOrManager = User.IsInRole("Administrator") || User.IsInRole("Manager");
+    bool onlyMine = ViewBag.OnlyMine == true;
+    bool showInactive = ViewBag.ShowInactive == true;
 }
 
 <h2>Zmiany pracowników</h2>
 
-<div class="mb-3">
-    <a asp-controller="EmployeesSchedule"
-       asp-action="WorkShifts"
-       class="btn btn-secondary">
-        Pokaż wszystkie zmiany
-    </a>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
-    <a asp-controller="EmployeesSchedule"
-       asp-action="WorkShifts"
-       asp-route-onlyMine="true"
-       class="btn btn-primary">
+<div class="mb-3">
+    @if (isAdminOrManager)
+    {
+        <a asp-action="WorkShifts" asp-route-showInactive="@showInactive" class="btn btn-secondary">
+            Pokaż wszystkie zmiany
+        </a>
+    }
+
+    <a asp-action="WorkShifts" asp-route-onlyMine="true" asp-route-showInactive="@showInactive" class="btn btn-primary">
         Pokaż tylko moje zmiany
     </a>
+
+    <a asp-action="WorkShifts" asp-route-onlyMine="@onlyMine" asp-route-showInactive="@(!showInactive)" class="btn btn-warning">
+        @(showInactive ? "Ukryj nieaktywnych" : "Pokaż też nieaktywnych")
+    </a>
+
+    @if (isAdminOrManager)
+    {
+        <a asp-action="CreateWorkShift" class="btn btn-success">Dodaj zmianę</a>
+    }
 </div>
 
 <table class="table table-striped table-bordered">
@@ -31,42 +50,53 @@
             <th>Start</th>
             <th>Koniec</th>
             <th>Utworzone przez</th>
-
             @if (isAdmin)
             {
                 <th>Akcje</th>
             }
         </tr>
     </thead>
-
     <tbody>
-        @foreach (var shift in Model)
+        @if (!Model.Any())
         {
             <tr>
-                <td>@shift.Employee.FirstName @shift.Employee.LastName</td>
-                <td>@shift.Employee.Position.Name</td>
-                <td>@shift.Employee.Status.Name</td>
-                <td>@shift.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
-                <td>@shift.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
-                <td>@shift.CreatedByUser.Login</td>
-
-                @if (isAdmin)
-                {
-                    <td>
-                        <form asp-action="DeleteWorkShift"
-                              asp-route-id="@shift.WorkShiftId"
-                              method="post"
-                              style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit"
-                                    class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Usunąć zmianę?')">
-                                Usuń
-                            </button>
-                        </form>
-                    </td>
-                }
+                <td colspan="@(isAdmin ? 7 : 6)" class="text-center">Brak zmian do wyświetlenia.</td>
             </tr>
+        }
+        else
+        {
+            foreach (var shift in Model)
+            {
+                var employeeStatus = shift.Employee?.Status?.Name ?? "Brak statusu";
+                var rowClass = employeeStatus == "Inactive" ? "table-secondary" : "";
+
+                <tr class="@rowClass">
+                    <td>@shift.Employee?.FirstName @shift.Employee?.LastName</td>
+                    <td>@(shift.Employee?.Position?.Name ?? "-")</td>
+                    <td>
+                        @if (employeeStatus == "Inactive")
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">@employeeStatus</span>
+                        }
+                    </td>
+                    <td>@shift.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@shift.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@(shift.CreatedByUser?.Login ?? "-")</td>
+                    @if (isAdmin)
+                    {
+                        <td>
+                            <form asp-action="DeleteWorkShift" asp-route-id="@shift.WorkShiftId" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Usunąć zmianę?')">Usuń</button>
+                            </form>
+                        </td>
+                    }
+                </tr>
+            }
         }
     </tbody>
 </table>

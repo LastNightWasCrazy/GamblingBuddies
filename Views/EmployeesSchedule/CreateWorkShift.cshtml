@@ -1,4 +1,4 @@
-﻿@model GamblingBuddies.Models.WorkShift
+﻿@model GamblingBuddies.Controllers.WorkShiftFormViewModel
 
 @{
     ViewData["Title"] = "Dodaj zmianę pracownika";
@@ -6,40 +6,35 @@
 
 <h2>Dodaj zmianę pracownika</h2>
 
-<form asp-action="CreateWorkShift" method="post">
+<form asp-action="CreateWorkShift" method="post" autocomplete="off">
     @Html.AntiForgeryToken()
 
-    <div class="text-danger">
-        @Html.ValidationSummary()
-    </div>
+    <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="mb-3">
-        <label class="form-label">Pracownik</label>
-        <select asp-for="EmployeeId" class="form-select">
-            <option value="">-- wybierz pracownika --</option>
-
-            @foreach (var employee in ViewBag.Employees)
-            {
-                <option value="@employee.EmployeeId">
-                    @employee.FirstName @employee.LastName
-                </option>
-            }
+        <label asp-for="EmployeeId" class="form-label">Pracownik</label>
+        <select asp-for="EmployeeId" asp-items="ViewBag.Employees" class="form-select">
+            <option value="">-- wybierz aktywnego pracownika --</option>
         </select>
+        <span asp-validation-for="EmployeeId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="StartAt" class="form-label">Początek zmiany</label>
-        <input asp-for="StartAt" type="datetime-local" class="form-control" />
+        <input asp-for="StartAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" class="form-control" />
+        <span asp-validation-for="StartAt" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="EndAt" class="form-label">Koniec zmiany</label>
-        <input asp-for="EndAt" type="datetime-local" class="form-control" />
+        <input asp-for="EndAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" step="60" class="form-control" />
+        <span asp-validation-for="EndAt" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Zapisz</button>
-
-    <a asp-action="WorkShifts" class="btn btn-secondary">
-        Anuluj
-    </a>
+    <a asp-action="WorkShifts" class="btn btn-secondary">Anuluj</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
