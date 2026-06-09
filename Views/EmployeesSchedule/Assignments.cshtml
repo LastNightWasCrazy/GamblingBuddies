@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Przypisania pracowników";
+    bool isAdmin = User.IsInRole("Administrator");
 }
 
 <h2>Przypisania pracowników do sesji gry</h2>
@@ -19,9 +20,14 @@
             <th>Koniec sesji</th>
             <th>Przypisał</th>
             <th>Notatki</th>
-            <th>Akcje</th>
+
+            @if (isAdmin)
+            {
+                <th>Akcje</th>
+            }
         </tr>
     </thead>
+
     <tbody>
         @foreach (var assignment in Model)
         {
@@ -36,12 +42,23 @@
                 <td>@assignment.GameSession.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@assignment.AssignedByUser.Login</td>
                 <td>@assignment.Notes</td>
-                <td>
-                    <form asp-action="DeleteAssignment" asp-route-id="@assignment.EmployeeAssignmentId" method="post" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Usunąć przypisanie?')">Usuń</button>
-                    </form>
-                </td>
+
+                @if (isAdmin)
+                {
+                    <td>
+                        <form asp-action="DeleteAssignment"
+                              asp-route-id="@assignment.EmployeeAssignmentId"
+                              method="post"
+                              style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Usunąć przypisanie?')">
+                                Usuń
+                            </button>
+                        </form>
+                    </td>
+                }
             </tr>
         }
     </tbody>

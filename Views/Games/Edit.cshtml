@@ -5,78 +5,56 @@
 }
 
 <div class="container mt-4">
-
-    <h1 class="mb-4">Edycja gry</h1>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-
-            <form asp-controller="Games"
-                  asp-action="Edit"
-                  method="post">
-
-                @Html.AntiForgeryToken()
-
-                <input type="hidden" asp-for="GameId" />
-
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">
-                        Nazwa gry
-                    </label>
-
-                    <input asp-for="Name" class="form-control" />
-
-                    <span asp-validation-for="Name"
-                          class="text-danger"></span>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header" style="background-color: #8b0000; color: white;">
+                    <h3 class="mb-0">Edycja gry</h3>
                 </div>
+                <div class="card-body">
+                    <form asp-controller="Games" asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label asp-for="GameCategoryId"
-                           class="form-label">
-                        Kategoria
-                    </label>
+                        <input type="hidden" asp-for="GameId" />
 
-                    <select asp-for="GameCategoryId"
-                            asp-items="ViewBag.Categories"
-                            class="form-select">
-                    </select>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Nazwa gry</label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GameCategoryId" class="form-label fw-bold">Kategoria</label>
+                            <select asp-for="GameCategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                <option value="">-- wybierz kategorię --</option>
+                            </select>
+                            <span asp-validation-for="GameCategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Opis</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">Gra aktywna</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Zapisz zmiany</button>
+                            <a asp-action="Index" class="btn btn-secondary">Wróć</a>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="Description"
-                           class="form-label">
-                        Opis
-                    </label>
-
-                    <textarea asp-for="Description"
-                              class="form-control"
-                              rows="4">
-                    </textarea>
-                </div>
-
-                <div class="form-check mb-4">
-                    <input asp-for="IsActive"
-                           class="form-check-input" />
-
-                    <label asp-for="IsActive"
-                           class="form-check-label">
-                        Gra aktywna
-                    </label>
-                </div>
-
-                <button type="submit"
-                        class="btn btn-success">
-                    Zapisz zmiany
-                </button>
-
-                <a asp-controller="Games"
-                   asp-action="Index"
-                   class="btn btn-secondary">
-                    Wróć
-                </a>
-
-            </form>
-
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

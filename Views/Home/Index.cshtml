@@ -2,159 +2,151 @@
     ViewData["Title"] = "Panel główny";
 }
 
-<div class="container-fluid">
-
-    @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
-    {
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Panel administracyjny</h5>
-                        <p class="card-text">Zarządzanie systemem, stołami, sesjami i danymi administracyjnymi.</p>
-                        <a asp-controller="AdminPanel" asp-action="Index" class="btn btn-dark">
-                            Otwórz panel
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
+<div class="container mt-4">
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold">Fortuna już czeka!</h1>
+        <h1 class="display-4 fw-bold" style="color: #8b0000;">Fortuna już czeka!</h1>
+        <p class="lead">Witaj w systemie zarządzania kasynem GamblingBuddies</p>
     </div>
 
-    <div class="MainDiv">
-
-        <div class="DivAbout">
-            <div class="card shadow-sm h-100 border-1">
-                <div class="card-body text-start">
-                    <h5 class="card-title me-auto">O nas</h5>
-                    <div class="AboutDescription">
-                        <p>
-                            GamblingBuddies to system wspierający zarządzanie kasynem online,
-                            rezerwacjami, grami, stołami oraz sesjami rozgrywek.
-                        </p>
-                    </div>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0 bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">O nas</h5>
+                    <p class="card-text">
+                        GamblingBuddies to system wspierający zarządzanie kasynem online,
+                        rezerwacjami, grami, stołami oraz sesjami rozgrywek.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="DivReservation">
-            <div class="card shadow-sm h-100 border-1">
-                <div class="card-body text-start">
-                    <h5 class="card-title">Masz ochotę na trochę prywatności?</h5>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-0 bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Masz ochotę na trochę prywatności?</h5>
                     <p class="card-text">Zarezerwuj miejsce przy stole i wybierz interesującą Cię sesję gry.</p>
-                    <a asp-controller="Reservation" asp-action="Go" class="btnReservation">Rezerwacja</a>
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="Reservation" asp-action="Go" class="btn btn-danger">Rezerwacja</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-danger">Zaloguj się</a>
+                    }
                 </div>
             </div>
         </div>
 
-        <div class="DivGames">
-            <div class="card text-start shadow-sm h-100 border-1">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Gry</h5>
-                    <p class="card-text">Oferta gier oraz warianty rozgrywek.</p>
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            @if (User.IsInRole("Administrator") || User.IsInRole("Manager"))
+            {
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100 border-0 bg-dark text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-cogs fs-1 mb-2"></i>
+                            <h5 class="card-title">Panel administracyjny</h5>
+                            <p class="card-text">Zarządzanie systemem, stołami, sesjami i danymi administracyjnymi.</p>
+                            <a asp-controller="AdminPanel" asp-action="Index" class="btn btn-danger">
+                                Otwórz panel
+                            </a>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="divDescription">
-
-                    <div class="cardGame">
-                        <img src="/Images/poker.jpg" alt="Gry karciane">
-
-                        <div class="cardText">
-                            <h3>Gry karciane</h3>
-
-                            <p>
-                                Strategiczne gry stołowe oparte na układach kart,
-                                analizie przeciwników i podejmowaniu decyzji.
-                            </p>
-
-                            <button class="btn btn-dark mt-2"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#cardGamesCollapse"
-                                    aria-expanded="false"
-                                    aria-controls="cardGamesCollapse">
-                                Zobacz gry
-                            </button>
-
-                            <div class="collapse mt-3" id="cardGamesCollapse">
-                                <div class="card card-body text-start text-light">
-
-                                    <h5>Blackjack</h5>
-                                    <p>
-                                        Gra przeciwko krupierowi, której celem jest uzyskanie wyniku
-                                        jak najbliższego 21 punktom bez przekroczenia tej wartości.
-                                    </p>
-
-                                    <h5>Poker</h5>
-                                    <p>
-                                        Gra strategiczna oparta na układach kart, blefie
-                                        oraz analizie decyzji przeciwników.
-                                    </p>
-
-                                    <h5>Baccarat</h5>
-                                    <p>
-                                        Szybka gra karciana polegająca na obstawianiu wyniku
-                                        rozdania gracza albo bankiera.
-                                    </p>
-
-                                </div>
-                            </div>
+            }
+            else
+            {
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100 border-0 bg-dark text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-danger">Gry</h5>
+                            <p class="card-text">Oferta gier oraz warianty rozgrywek.</p>
                         </div>
                     </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 border-0 bg-dark text-white">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-danger">Gry</h5>
+                        <p class="card-text">Oferta gier oraz warianty rozgrywek.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 
-                    <div class="cardGame">
-                        <img src="/Images/Ruletka.jpg" alt="Ruletka">
-
-                        <div class="cardText">
-                            <h3>Ruletka</h3>
-
-                            <p>
-                                Klasyczne gry losowe oparte na obstawianiu wyników
-                                obrotu koła ruletki.
-                            </p>
-
-                            <button class="btn btn-danger mt-2"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#rouletteCollapse"
-                                    aria-expanded="false"
-                                    aria-controls="rouletteCollapse">
-                                Zobacz gry
-                            </button>
-
-                            <div class="collapse mt-3" id="rouletteCollapse">
-                                <div class="card card-body text-start text-light">
-
-                                    <h5>Ruletka europejska</h5>
-                                    <p>
-                                        Tradycyjna wersja ruletki z pojedynczym zerem,
-                                        popularna w europejskich kasynach.
-                                    </p>
-
-                                    <h5>Ruletka amerykańska</h5>
-                                    <p>
-                                        Odmiana z dodatkowymi polami zero oraz double zero,
-                                        oferująca bardziej dynamiczną rozgrywkę.
-                                    </p>
-
-                                    <h5>Mini ruletka</h5>
-                                    <p>
-                                        Prostsza i szybsza wersja klasycznej ruletki
-                                        z mniejszą liczbą pól.
-                                    </p>
-
-                                </div>
-                            </div>
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        @if (!User.IsInRole("Administrator") && !User.IsInRole("Manager"))
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 bg-dark text-white text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">Gry</h5>
+                            <p class="card-text">Oferta gier oraz warianty rozgrywek.</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        }
+    }
 
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 bg-dark text-white h-100">
+                <img src="/Images/poker.jpg" class="card-img-top" alt="Gry karciane" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h3 class="card-title text-danger">Gry karciane</h3>
+                    <p class="card-text">
+                        Strategiczne gry stołowe oparte na układach kart,
+                        analizie przeciwników i podejmowaniu decyzji.
+                    </p>
+                    <button class="btn btn-outline-danger mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#cardGamesCollapse">
+                        Zobacz gry
+                    </button>
+                    <div class="collapse mt-3" id="cardGamesCollapse">
+                        <div class="card card-body bg-secondary text-white">
+                            <h5 class="text-danger">Blackjack</h5>
+                            <p>Gra przeciwko krupierowi, której celem jest uzyskanie wyniku jak najbliższego 21 punktom.</p>
+                            <h5 class="text-danger mt-2">Poker</h5>
+                            <p>Gra strategiczna oparta na układach kart, blefie oraz analizie decyzji przeciwników.</p>
+                            <h5 class="text-danger mt-2">Baccarat</h5>
+                            <p>Szybka gra karciana polegająca na obstawianiu wyniku rozdania gracza albo bankiera.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 bg-dark text-white h-100">
+                <img src="/Images/Ruletka.jpg" class="card-img-top" alt="Ruletka" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h3 class="card-title text-danger">Ruletka</h3>
+                    <p class="card-text">
+                        Klasyczne gry losowe oparte na obstawianiu wyników obrotu koła ruletki.
+                    </p>
+                    <button class="btn btn-outline-danger mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#rouletteCollapse">
+                        Zobacz gry
+                    </button>
+                    <div class="collapse mt-3" id="rouletteCollapse">
+                        <div class="card card-body bg-secondary text-white">
+                            <h5 class="text-danger">Ruletka europejska</h5>
+                            <p>Tradycyjna wersja ruletki z pojedynczym zerem, popularna w europejskich kasynach.</p>
+                            <h5 class="text-danger mt-2">Ruletka amerykańska</h5>
+                            <p>Odmiana z dodatkowymi polami zero oraz double zero.</p>
+                            <h5 class="text-danger mt-2">Mini ruletka</h5>
+                            <p>Prostsza i szybsza wersja klasycznej ruletki z mniejszą liczbą pól.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

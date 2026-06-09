@@ -1,6 +1,71 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<GamblingBuddies.Models.Hall>
+
 @{
+    ViewData["Title"] = "Sale kasyna";
 }
-<h4>Jesteś zalogowany wow</h4>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="mb-0">Sale kasyna</h1>
+        @if (User.IsInRole("Administrator"))
+        {
+            <a asp-action="Create" class="btn btn-success">+ Dodaj salę</a>
+        }
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nazwa sali</th>
+                            <th>Typ</th>
+                            <th>Opis</th>
+                            <th>Status</th>
+                            <th>Liczba stołów</th>
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <th>Akcje</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var hall in Model)
+                        {
+                            <tr>
+                                <td>@hall.HallId</td>
+                                <td>@hall.Name</td>
+                                <td>@hall.HallType?.Name</td>
+                                <td>@(hall.Description?.Length > 50 ? hall.Description.Substring(0, 50) + "..." : hall.Description)</td>
+                                <td>
+                                    @if (hall.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktywna</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Nieaktywna</span>
+                                    }
+                                </td>
+                                <td>@(hall.GameTables?.Count ?? 0)</td>
+                                @if (User.IsInRole("Administrator"))
+                                {
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@hall.HallId" class="btn btn-sm btn-primary">Szczegóły</a>
+                                        <a asp-action="Edit" asp-route-id="@hall.HallId" class="btn btn-sm btn-warning">Edytuj</a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center m-3">Brak sal w systemie.</div>
+            }
+        </div>
+    </div>
+</div>
