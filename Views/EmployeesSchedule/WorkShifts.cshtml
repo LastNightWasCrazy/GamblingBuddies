@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Zmiany pracowników";
+    bool isAdmin = User.IsInRole("Administrator");
 }
 
 <h2>Zmiany pracowników</h2>
@@ -30,9 +31,14 @@
             <th>Start</th>
             <th>Koniec</th>
             <th>Utworzone przez</th>
-            <th>Akcje</th>
+
+            @if (isAdmin)
+            {
+                <th>Akcje</th>
+            }
         </tr>
     </thead>
+
     <tbody>
         @foreach (var shift in Model)
         {
@@ -43,12 +49,23 @@
                 <td>@shift.StartAt.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@shift.EndAt.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@shift.CreatedByUser.Login</td>
-                <td>
-                    <form asp-action="DeleteWorkShift" asp-route-id="@shift.WorkShiftId" method="post" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Usunąć zmianę?')">Usuń</button>
-                    </form>
-                </td>
+
+                @if (isAdmin)
+                {
+                    <td>
+                        <form asp-action="DeleteWorkShift"
+                              asp-route-id="@shift.WorkShiftId"
+                              method="post"
+                              style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Usunąć zmianę?')">
+                                Usuń
+                            </button>
+                        </form>
+                    </td>
+                }
             </tr>
         }
     </tbody>
