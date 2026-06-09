@@ -110,5 +110,82 @@ namespace GamblingBuddies.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            ViewBag.Halls = new SelectList(
+                _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
+                "HallId",
+                "Name"
+            );
+
+            var model = new GameTable
+            {
+                IsActive = true,
+                MinPlayers = 1,
+                MaxPlayers = 6
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(GameTable model)
+        {
+            ModelState.Remove("Hall");
+            ModelState.Remove("Seats");
+            ModelState.Remove("GameSessions");
+
+            if (model.MinPlayers < 1)
+            {
+                ModelState.AddModelError("MinPlayers", "Minimalna liczba graczy musi być większa od 0.");
+            }
+
+            if (model.MaxPlayers < model.MinPlayers)
+            {
+                ModelState.AddModelError("MaxPlayers", "Maksymalna liczba graczy nie może być mniejsza niż minimalna.");
+            }
+
+            var tableNumberExists = _context.GameTables
+                .Any(t => t.TableNumber == model.TableNumber && t.HallId == model.HallId);
+
+            if (tableNumberExists)
+            {
+                ModelState.AddModelError("TableNumber", "W tej sali istnieje już stół o takim numerze.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Halls = new SelectList(
+                    _context.Halls.Where(h => h.IsActive).OrderBy(h => h.Name).ToList(),
+                    "HallId",
+                    "Name",
+                    model.HallId
+                );
+
+                return View(model);
+            }
+
+            _context.GameTables.Add(model);
+            _context.SaveChanges();
+
+            for (int i = 1; i <= model.MaxPlayers; i++)
+            {
+                _context.Seats.Add(new Seat
+                {
+                    TableId = model.GameTableId,
+                    SeatNumber = i,
+                    IsActive = true
+                });
+            }
+
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Stół został dodany.";
+
+            return RedirectToAction("Index");
+        }
     }
 }

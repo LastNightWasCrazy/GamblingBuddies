@@ -10,11 +10,13 @@ namespace GamblingBuddies.Controllers
     {
         private readonly AppDbContext _context;
         private readonly PayUService _payUService;
+        private readonly IConfiguration _configuration;
 
-        public PaymentController(AppDbContext context, PayUService payUService)
+        public PaymentController(AppDbContext context, PayUService payUService, IConfiguration configuration)
         {
             _context = context;
             _payUService = payUService;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -30,97 +32,231 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go", "Reservation");
             }
 
-            var continueUrl = Url.Action(
-                "Continue",
-                "Payment",
-                new { reservationId = reservationId },
-                Request.Scheme
-            )!;
+            var publicUrl = _configuration["AppSettings:PublicUrl"]?.TrimEnd('/');
 
-            var notifyUrl = Url.Action(
-                "Notify",
-                "Payment",
-                null,
-                Request.Scheme
-            )!;
-
-            var customerIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-
-            var result = await _payUService.CreateOrderAsync(
-                payment,
-                continueUrl,
-                notifyUrl,
-                customerIp
-            );
-
-            await _context.SaveChangesAsync();
-
-            if (string.IsNullOrEmpty(result.RedirectUri))
+            if (string.IsNullOrWhiteSpace(publicUrl))
             {
-                TempData["Error"] = "PayU nie zwróciło adresu płatności.";
+                TempData["Error"] = "Brak AppSettings:PublicUrl w appsettings.json.";
                 return RedirectToAction("Go", "Reservation");
             }
 
-            return Redirect(result.RedirectUri);
+            var continueUrl = $"{publicUrl}/Payment/Continue?reservationId={reservationId}";
+            var notifyUrl = $"{publicUrl}/Payment/Notify";
+
+            Console.WriteLine("PAYU CONTINUE URL: " + continueUrl);
+            Console.WriteLine("PAYU NOTIFY URL: " + notifyUrl);
+
+            var customerIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+
+            try
+            {
+                var result = await _payUService.CreateOrderAsync(
+                    payment,
+                    continueUrl,
+                    notifyUrl,
+                    customerIp
+                );
+
+                await _context.SaveChangesAsync();
+
+                if (string.IsNullOrEmpty(result.RedirectUri))
+                {
+                    TempData["Error"] = "PayU nie zwróciło adresu płatności.";
+                    return RedirectToAction("Go", "Reservation");
+                }
+
+                return Redirect(result.RedirectUri);
+            }
+            catch (Exception ex)
+            {
+                await SetPaymentRejected(
+                    payment,
+                    "PAYU_CREATE_ORDER_ERROR",
+                    ex.Message
+                );
+
+                TempData["Error"] = "Nie udało się rozpocząć płatności PayU.";
+                return RedirectToAction("Go", "Reservation");
+            }
         }
 
         [HttpGet]
-        public IActionResult Continue(int reservationId)
+        public async Task<IActionResult> Continue(int reservationId)
         {
-            TempData["Success"] = "Wrócono z PayU. Płatność oczekuje na potwierdzenie.";
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
+
+            if (payment == null)
+            {
+                TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            /*
+                WAŻNE:
+                Tutaj NIE ustawiamy już statusu Paid.
+                PayU wraca do Continue zarówno po zatwierdzeniu,
+                jak i po odrzuceniu/anulowaniu płatności.
+
+                Status ma ustawić metoda Notify().
+            */
+
+            TempData["Success"] = "Wrócono z PayU. Status płatności zostanie zaktualizowany po powiadomieniu z PayU.";
 
             return RedirectToAction("Go", "Reservation");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Notify()
+        [HttpGet]
+        public async Task<IActionResult> Reject(int reservationId)
         {
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-
-            using var document = JsonDocument.Parse(body);
-
-            var order = document.RootElement.GetProperty("order");
-
-            var orderId = order.GetProperty("orderId").GetString();
-            var status = order.GetProperty("status").GetString();
-
-            var extOrderId = order.GetProperty("extOrderId").GetString();
-
             var payment = await _context.Payments
-                .FirstOrDefaultAsync(p =>
-                    p.PaymentProviderOrderId == orderId ||
-                    p.ExternalOrderId == extOrderId);
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
             if (payment == null)
             {
+                TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            await SetPaymentRejected(
+                payment,
+                "PAYU_REJECT",
+                "Płatność została odrzucona lub anulowana."
+            );
+
+            TempData["Error"] = "Płatność została odrzucona lub anulowana.";
+            return RedirectToAction("Go", "Reservation");
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Notify()
+        {
+            Console.WriteLine("========== PAYU NOTIFY PRZYSZŁO ==========");
+
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            Console.WriteLine("PAYU BODY:");
+            Console.WriteLine(body);
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                Console.WriteLine("PAYU BODY PUSTE");
                 return Ok();
             }
 
-            _context.PaymentTransactions.Add(new PaymentTransaction
-            {
-                PaymentId = payment.PaymentId,
-                ExternalTransactionId = orderId ?? "BRAK_ORDER_ID",
-                ProviderResponseCode = status ?? "BRAK_STATUSU",
-                ProviderResponseMessage = body,
-                CreatedAt = DateTime.Now
-            });
+            JsonDocument document;
 
-            if (status == "COMPLETED")
+            try
             {
-                var paidStatus = await _context.PaymentStatuses
-                    .FirstOrDefaultAsync(s => s.Name == "Paid");
-
-                if (paidStatus != null)
-                {
-                    payment.PaymentStatusId = paidStatus.PaymentStatusId;
-                    payment.PaidAt = DateTime.Now;
-                }
+                document = JsonDocument.Parse(body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Błąd parsowania JSON:");
+                Console.WriteLine(ex.Message);
+                return Ok();
             }
 
-            await _context.SaveChangesAsync();
+            using (document)
+            {
+                if (!document.RootElement.TryGetProperty("order", out var order))
+                {
+                    Console.WriteLine("Brak pola order w JSON");
+                    return Ok();
+                }
 
-            return Ok();
+                var orderId = order.TryGetProperty("orderId", out var orderIdElement)
+                    ? orderIdElement.GetString()
+                    : null;
+
+                var status = order.TryGetProperty("status", out var statusElement)
+                    ? statusElement.GetString()
+                    : null;
+
+                var extOrderId = order.TryGetProperty("extOrderId", out var extOrderIdElement)
+                    ? extOrderIdElement.GetString()
+                    : null;
+
+                Console.WriteLine("PAYU orderId: " + orderId);
+                Console.WriteLine("PAYU extOrderId: " + extOrderId);
+                Console.WriteLine("PAYU status: " + status);
+
+                var payment = await _context.Payments
+                    .FirstOrDefaultAsync(p =>
+                        p.PaymentProviderOrderId == orderId ||
+                        p.ExternalOrderId == extOrderId);
+
+                if (payment == null)
+                {
+                    Console.WriteLine("NIE ZNALEZIONO PAYMENT PO orderId/extOrderId");
+
+                    payment = await _context.Payments
+                        .OrderByDescending(p => p.CreatedAt)
+                        .FirstOrDefaultAsync(p => p.PaymentStatus.Name == "Pending");
+
+                    if (payment == null)
+                    {
+                        Console.WriteLine("NIE ZNALEZIONO ŻADNEJ PENDING PŁATNOŚCI");
+                        return Ok();
+                    }
+
+                    Console.WriteLine("UŻYWAM AWARYJNIE OSTATNIEJ PENDING PAYMENT ID: " + payment.PaymentId);
+                }
+
+                _context.PaymentTransactions.Add(new PaymentTransaction
+                {
+                    PaymentId = payment.PaymentId,
+                    ExternalTransactionId = orderId ?? extOrderId ?? "BRAK_ORDER_ID",
+                    ProviderResponseCode = status ?? "BRAK_STATUSU",
+                    ProviderResponseMessage = body,
+                    CreatedAt = DateTime.Now
+                });
+
+                var payuStatus = status?.ToUpper();
+
+                if (payuStatus == "COMPLETED")
+                {
+                    var paidStatus = await _context.PaymentStatuses
+                        .FirstOrDefaultAsync(s => s.Name == "Paid");
+
+                    if (paidStatus != null)
+                    {
+                        payment.PaymentStatusId = paidStatus.PaymentStatusId;
+                        payment.PaidAt = DateTime.Now;
+                        Console.WriteLine("USTAWIONO PAID");
+                    }
+                }
+                else if (
+                    payuStatus == "CANCELED" ||
+                    payuStatus == "REJECTED" ||
+                    payuStatus == "ERROR")
+                {
+                    var rejectedStatus = await _context.PaymentStatuses
+                        .FirstOrDefaultAsync(s => s.Name == "Rejected");
+
+                    if (rejectedStatus != null)
+                    {
+                        payment.PaymentStatusId = rejectedStatus.PaymentStatusId;
+                        payment.PaidAt = null;
+                        Console.WriteLine("USTAWIONO REJECTED");
+                    }
+                    else
+                    {
+                        Console.WriteLine("BRAK STATUSU REJECTED W BAZIE");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("STATUS NIE ZMIENIA PŁATNOŚCI: " + payuStatus);
+                }
+
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine("ZAPISANO ZMIANY W BAZIE");
+                return Ok();
+            }
         }
 
         [HttpGet]
@@ -135,22 +271,76 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go", "Reservation");
             }
 
+            await SetPaymentPaid(payment, "MANUAL_CONFIRM", "Płatność została ręcznie potwierdzona w systemie.");
+
+            TempData["Success"] = "Płatność została potwierdzona.";
+            return RedirectToAction("Go", "Reservation");
+        }
+
+        private async Task SetPaymentPaid(
+            Payment payment,
+            string responseCode,
+            string responseMessage)
+        {
+            await SetPaymentPaidWithoutSave(payment);
+
+            _context.PaymentTransactions.Add(new PaymentTransaction
+            {
+                PaymentId = payment.PaymentId,
+                ExternalTransactionId = payment.PaymentProviderOrderId
+                                        ?? payment.ExternalOrderId
+                                        ?? "BRAK_ORDER_ID",
+                ProviderResponseCode = responseCode,
+                ProviderResponseMessage = responseMessage,
+                CreatedAt = DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SetPaymentRejected(
+            Payment payment,
+            string responseCode,
+            string responseMessage)
+        {
+            await SetPaymentRejectedWithoutSave(payment);
+
+            _context.PaymentTransactions.Add(new PaymentTransaction
+            {
+                PaymentId = payment.PaymentId,
+                ExternalTransactionId = payment.PaymentProviderOrderId
+                                        ?? payment.ExternalOrderId
+                                        ?? "BRAK_ORDER_ID",
+                ProviderResponseCode = responseCode,
+                ProviderResponseMessage = responseMessage,
+                CreatedAt = DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SetPaymentPaidWithoutSave(Payment payment)
+        {
             var paidStatus = await _context.PaymentStatuses
                 .FirstOrDefaultAsync(s => s.Name == "Paid");
 
-            if (paidStatus == null)
+            if (paidStatus != null)
             {
-                TempData["Error"] = "Brak statusu płatności Paid w bazie.";
-                return RedirectToAction("Go", "Reservation");
+                payment.PaymentStatusId = paidStatus.PaymentStatusId;
+                payment.PaidAt = DateTime.Now;
             }
+        }
 
-            payment.PaymentStatusId = paidStatus.PaymentStatusId;
-            payment.PaidAt = DateTime.Now;
+        private async Task SetPaymentRejectedWithoutSave(Payment payment)
+        {
+            var rejectedStatus = await _context.PaymentStatuses
+                .FirstOrDefaultAsync(s => s.Name == "Rejected");
 
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Płatność kartą została potwierdzona.";
-            return RedirectToAction("Go", "Reservation");
+            if (rejectedStatus != null)
+            {
+                payment.PaymentStatusId = rejectedStatus.PaymentStatusId;
+                payment.PaidAt = null;
+            }
         }
     }
 }

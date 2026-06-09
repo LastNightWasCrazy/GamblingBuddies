@@ -114,6 +114,10 @@
                 context.Set<EmployeeStatusDictionary>().Add(inactiveEmployeeStatus);
             }
 
+            GetOrCreatePaymentStatus(context, "Pending", "Oczekująca");
+            GetOrCreatePaymentStatus(context, "Paid", "Opłacona");
+            GetOrCreatePaymentStatus(context, "Rejected", "Odrzucona");
+
             var standardHallType = new HallTypeDictionary { Name = "Standard", Description = "Sala standardowa" };
             var vipHallType = new HallTypeDictionary { Name = "VIP", Description = "Sala VIP" };
 
@@ -128,6 +132,7 @@
 
             var pendingPaymentStatus = new PaymentStatusDictionary { Name = "Pending", Description = "Oczekująca" };
             var paidPaymentStatus = new PaymentStatusDictionary { Name = "Paid", Description = "Opłacona" };
+            var rejectedPaymentStatus = GetOrCreatePaymentStatus(context, "Rejected", "Odrzucona");
 
             var cashMethod = new PaymentMethodDictionary { Name = "Cash", Description = "Gotówka" };
             var cardMethod = new PaymentMethodDictionary { Name = "Card", Description = "Karta" };
