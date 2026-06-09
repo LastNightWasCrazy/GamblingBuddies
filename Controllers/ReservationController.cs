@@ -32,26 +32,21 @@ namespace GamblingBuddies.Controllers
         [AllowAnonymous]
         public IActionResult GetGamesByHall(int hallId)
         {
-            var games = (
-                from session in _context.GameSessions
-                join table in _context.GameTables
-                    on session.GameTableId equals table.GameTableId
-                join variant in _context.GameVariants
-                    on session.GameVariantId equals variant.GameVariantId
-                join game in _context.Games
-                    on variant.GameId equals game.GameId
-                where table.HallId == hallId
-                      && table.IsActive
-                      && game.IsActive
-                select new
+            var games = _context.GameTableGames
+                .Include(gtg => gtg.Game)
+                .Include(gtg => gtg.GameTable)
+                .Where(gtg =>
+                    gtg.GameTable.HallId == hallId &&
+                    gtg.GameTable.IsActive &&
+                    gtg.Game.IsActive)
+                .Select(gtg => new
                 {
-                    gameId = game.GameId,
-                    name = game.Name
-                }
-            )
-            .Distinct()
-            .OrderBy(g => g.name)
-            .ToList();
+                    gameId = gtg.Game.GameId,
+                    name = gtg.Game.Name
+                })
+                .Distinct()
+                .OrderBy(g => g.name)
+                .ToList();
 
             return Json(games);
         }
@@ -60,27 +55,21 @@ namespace GamblingBuddies.Controllers
         [AllowAnonymous]
         public IActionResult GetTablesByHallAndGame(int hallId, int gameId)
         {
-            var tables = (
-                from table in _context.GameTables
-                join session in _context.GameSessions
-                    on table.GameTableId equals session.GameTableId
-                join variant in _context.GameVariants
-                    on session.GameVariantId equals variant.GameVariantId
-                join game in _context.Games
-                    on variant.GameId equals game.GameId
-                where table.HallId == hallId
-                      && game.GameId == gameId
-                      && table.IsActive
-                select new
+            var tables = _context.GameTableGames
+                .Include(gtg => gtg.GameTable)
+                .Where(gtg =>
+                    gtg.GameId == gameId &&
+                    gtg.GameTable.HallId == hallId &&
+                    gtg.GameTable.IsActive)
+                .Select(gtg => new
                 {
-                    gameTableId = table.GameTableId,
-                    text = "Stół " + table.TableNumber + " | maks. osób: " + table.MaxPlayers,
-                    maxPlayers = table.MaxPlayers
-                }
-            )
-            .Distinct()
-            .OrderBy(t => t.text)
-            .ToList();
+                    gameTableId = gtg.GameTable.GameTableId,
+                    text = "Stół " + gtg.GameTable.TableNumber + " | maks. osób: " + gtg.GameTable.MaxPlayers,
+                    maxPlayers = gtg.GameTable.MaxPlayers
+                })
+                .Distinct()
+                .OrderBy(t => t.text)
+                .ToList();
 
             return Json(tables);
         }
@@ -144,7 +133,9 @@ namespace GamblingBuddies.Controllers
             }
 
             var table = _context.GameTables
-                .FirstOrDefault(t => t.GameTableId == gameTableId && t.IsActive);
+                .FirstOrDefault(t =>
+                    t.GameTableId == gameTableId &&
+                    t.IsActive);
 
             if (table == null)
             {
@@ -251,6 +242,7 @@ namespace GamblingBuddies.Controllers
 
             var table = _context.GameTables
                 .Include(t => t.Seats)
+                .Include(t => t.GameTableGames)
                 .FirstOrDefault(t =>
                     t.GameTableId == GameTableId &&
                     t.HallId == HallId &&
@@ -262,6 +254,15 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go");
             }
 
+            var tableSupportsGame = table.GameTableGames
+                .Any(gtg => gtg.GameId == GameId);
+
+            if (!tableSupportsGame)
+            {
+                TempData["Error"] = "Wybrany stół nie obsługuje tej gry.";
+                return RedirectToAction("Go");
+            }
+
             if (Quantity > table.MaxPlayers)
             {
                 TempData["Error"] = $"Ten stół obsługuje maksymalnie {table.MaxPlayers} osób.";
@@ -269,7 +270,9 @@ namespace GamblingBuddies.Controllers
             }
 
             var variant = _context.GameVariants
-                .FirstOrDefault(v => v.GameId == GameId && v.IsActive);
+                .FirstOrDefault(v =>
+                    v.GameId == GameId &&
+                    v.IsActive);
 
             if (variant == null)
             {

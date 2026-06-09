@@ -1,0 +1,112 @@
+﻿@model GamblingBuddies.Controllers.EmployeeEditViewModel
+
+@{
+    ViewData["Title"] = "Edytuj pracownika";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Edytuj pracownika</h1>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <form asp-controller="Employees" asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="EmployeeId" />
+                <input type="hidden" asp-for="SystemUserId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <h4>Dane pracownika</h4>
+                <hr />
+
+                <div class="mb-3">
+                    <label asp-for="FirstName" class="form-label">Imię</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LastName" class="form-label">Nazwisko</label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label">Telefon</label>
+                    <input asp-for="Phone" class="form-control" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="HireDate" class="form-label">Data zatrudnienia</label>
+                    <input asp-for="HireDate" type="date" class="form-control" />
+                    <span asp-validation-for="HireDate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PositionId" class="form-label">Stanowisko</label>
+                    <select asp-for="PositionId" asp-items="ViewBag.Positions" class="form-select">
+                        <option value="">-- wybierz stanowisko --</option>
+                    </select>
+                    <span asp-validation-for="PositionId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EmployeeStatusId" class="form-label">Status pracownika</label>
+                    <select asp-for="EmployeeStatusId" asp-items="ViewBag.Statuses" class="form-select">
+                        <option value="">-- wybierz status --</option>
+                    </select>
+                    <span asp-validation-for="EmployeeStatusId" class="text-danger"></span>
+                </div>
+
+                <h4 class="mt-4">Konto logowania</h4>
+                <hr />
+
+                <div class="mb-3">
+                    <label asp-for="Login" class="form-label">Login</label>
+                    <input asp-for="Login" class="form-control" />
+                    <span asp-validation-for="Login" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="NewPassword" class="form-label">Nowe hasło</label>
+                    <input asp-for="NewPassword" type="text" class="form-control" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                    <small class="text-muted">
+                        Zostaw puste, jeśli nie chcesz zmieniać hasła.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="RoleDictionaryId" class="form-label">Rola w systemie</label>
+                    <select asp-for="RoleDictionaryId" asp-items="ViewBag.Roles" class="form-select">
+                        <option value="">-- wybierz rolę --</option>
+                    </select>
+                    <span asp-validation-for="RoleDictionaryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label">Konto aktywne</label>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Zapisz zmiany
+                </button>
+
+                <a asp-controller="Employees" asp-action="Index" class="btn btn-secondary">
+                    Wróć
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>
