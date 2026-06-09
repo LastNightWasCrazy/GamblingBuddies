@@ -94,6 +94,7 @@ namespace GamblingBuddies
 
             var cardsCategory = GetOrCreateGameCategory(context, "Cards", "Gry karciane");
             var rouletteCategory = GetOrCreateGameCategory(context, "Roulette", "Ruletka");
+            var plannedStatus = GetOrCreateSessionStatus(context, "Planned", "Zaplanowana");
 
             var admin = context.Set<SystemUser>().First(u => u.Login == "admin");
             var manager = context.Set<SystemUser>().First(u => u.Login == "manager");
@@ -264,7 +265,15 @@ namespace GamblingBuddies
                 IsActive = true
             };
 
-            context.Set<Game>().AddRange(poker, blackjack, roulette);
+            var wojna = new Game
+            {
+                Name = "Wojna",
+                GameCategoryId = cardsCategory.GameCategoryId,
+                Description = "Prosta gra karciana, w której wygrywa gracz z wyższą kartą.",
+                IsActive = true
+            };
+
+            context.Set<Game>().AddRange(poker, blackjack, roulette, wojna);
             context.SaveChanges();
 
             var texasHoldem = new GameVariant
@@ -297,7 +306,17 @@ namespace GamblingBuddies
                 IsActive = true
             };
 
-            context.Set<GameVariant>().AddRange(texasHoldem, blackjackClassic, europeanRoulette);
+            var wojnaClassic = new GameVariant
+            {
+                GameId = wojna.GameId,
+                Name = "Wojna Classic",
+                RulesDescription = "Podstawowy wariant gry Wojna.",
+                DefaultMinBet = 5,
+                DefaultMaxBet = 200,
+                IsActive = true
+            };
+
+            context.Set<GameVariant>().AddRange(texasHoldem, blackjackClassic, europeanRoulette, wojnaClassic);
             context.SaveChanges();
 
             context.Set<GameTableGame>().AddRange(
@@ -360,6 +379,78 @@ namespace GamblingBuddies
                 {
                     GameTableId = table6.GameTableId,
                     GameId = poker.GameId
+                },
+                new GameTableGame
+                {
+                    GameTableId = table3.GameTableId,
+                    GameId = wojna.GameId
+                },
+                new GameTableGame
+                {
+                    GameTableId = table5.GameTableId,
+                    GameId = wojna.GameId
+                }
+            );
+
+            context.SaveChanges();
+
+            var session1 = new GameSession
+            {
+                GameVariantId = texasHoldem.GameVariantId,
+                GameTableId = table1.GameTableId,
+                StartAt = DateTime.Now.AddHours(2),
+                EndAt = DateTime.Now.AddHours(5),
+                SessionStatusId = plannedStatus.SessionStatusId,
+                CreatedByUserId = admin.SystemUserId
+            };
+
+            var session2 = new GameSession
+            {
+                GameVariantId = blackjackClassic.GameVariantId,
+                GameTableId = table2.GameTableId,
+                StartAt = DateTime.Now.AddHours(3),
+                EndAt = DateTime.Now.AddHours(6),
+                SessionStatusId = plannedStatus.SessionStatusId,
+                CreatedByUserId = admin.SystemUserId
+            };
+
+            var session3 = new GameSession
+            {
+                GameVariantId = europeanRoulette.GameVariantId,
+                GameTableId = table4.GameTableId,
+                StartAt = DateTime.Now.AddHours(1),
+                EndAt = DateTime.Now.AddHours(4),
+                SessionStatusId = plannedStatus.SessionStatusId,
+                CreatedByUserId = admin.SystemUserId
+            };
+
+            var session4 = new GameSession
+            {
+                GameVariantId = wojnaClassic.GameVariantId,
+                GameTableId = table3.GameTableId,
+                StartAt = DateTime.Now.AddHours(4),
+                EndAt = DateTime.Now.AddHours(7),
+                SessionStatusId = plannedStatus.SessionStatusId,
+                CreatedByUserId = admin.SystemUserId
+            };
+
+            context.Set<GameSession>().AddRange(session1, session2, session3, session4);
+            context.SaveChanges();
+
+            context.Set<EmployeeAssignment>().AddRange(
+                new EmployeeAssignment
+                {
+                    EmployeeId = employee1.EmployeeId,
+                    GameSessionId = session1.GameSessionId,
+                    AssignedByUserId = admin.SystemUserId,
+                    Notes = "Przypisanie testowe do sesji pokera."
+                },
+                new EmployeeAssignment
+                {
+                    EmployeeId = employee2.EmployeeId,
+                    GameSessionId = session4.GameSessionId,
+                    AssignedByUserId = admin.SystemUserId,
+                    Notes = "Przypisanie testowe do sesji gry Wojna."
                 }
             );
 
