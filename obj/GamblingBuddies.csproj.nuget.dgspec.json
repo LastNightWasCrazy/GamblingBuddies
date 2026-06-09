@@ -1,6 +1,7 @@
 {
   "format": 1,
   "restore": {
+<<<<<<< HEAD
     "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj": {}
   },
   "projects": {
@@ -12,12 +13,29 @@
         "projectPath": "C:\\Users\\lezak\\Desktop\\projekt\\GamblingBuddies.csproj",
         "packagesPath": "C:\\Users\\lezak\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\lezak\\Desktop\\projekt\\obj\\",
+=======
+    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+        "projectName": "GamblingBuddies",
+        "projectPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+        "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\",
+>>>>>>> fe1ef5aff9f7f9d161d2cc90e42b29edd6fc9136
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\vs3\\NuGetPackages"
         ],
         "configFilePaths": [
+<<<<<<< HEAD
           "C:\\Users\\lezak\\AppData\\Roaming\\NuGet\\NuGet.Config",
+=======
+          "C:\\Users\\Bartek\\AppData\\Roaming\\NuGet\\NuGet.Config",
+>>>>>>> fe1ef5aff9f7f9d161d2cc90e42b29edd6fc9136
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -100,7 +118,11 @@
               "privateAssets": "all"
             }
           },
+<<<<<<< HEAD
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
+=======
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+>>>>>>> fe1ef5aff9f7f9d161d2cc90e42b29edd6fc9136
         }
       }
     }
