@@ -14,18 +14,20 @@
                     {
                         <div class="alert alert-danger">@TempData["Error"]</div>
                     }
-                    
-                    <form asp-action="GeneratePaymentReport" method="post">
+
+                    <form asp-action="GeneratePaymentReport" method="post" id="reportForm">
                         <div class="form-group mb-3">
                             <label>Data początkowa</label>
-                            <input type="date" name="startDate" class="form-control" />
+                            <input type="date" name="startDate" id="startDate" class="form-control" required />
+                            <span class="text-danger" id="startDateError"></span>
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label>Data końcowa</label>
-                            <input type="date" name="endDate" class="form-control" />
+                            <input type="date" name="endDate" id="endDate" class="form-control" required />
+                            <span class="text-danger" id="endDateError"></span>
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label>Metoda płatności</label>
                             <select name="paymentMethod" class="form-control">
@@ -45,7 +47,7 @@
                                 }
                             </select>
                         </div>
-                        
+
                         <div class="form-group mb-3">
                             <label>Status płatności</label>
                             <select name="status" class="form-control">
@@ -66,7 +68,7 @@
                                 }
                             </select>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-success">Generuj PDF</button>
                         <a asp-action="Index" class="btn btn-secondary">Powrót</a>
                     </form>
@@ -75,3 +77,37 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            var startDate = document.getElementById('startDate').value;
+            var endDate = document.getElementById('endDate').value;
+            var startDateError = document.getElementById('startDateError');
+            var endDateError = document.getElementById('endDateError');
+            var isValid = true;
+
+            startDateError.textContent = '';
+            endDateError.textContent = '';
+
+            if (!startDate) {
+                startDateError.textContent = 'Data początkowa jest wymagana';
+                isValid = false;
+            }
+
+            if (!endDate) {
+                endDateError.textContent = 'Data końcowa jest wymagana';
+                isValid = false;
+            }
+
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                endDateError.textContent = 'Data końcowa nie może być wcześniejsza niż data początkowa';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+}

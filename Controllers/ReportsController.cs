@@ -177,7 +177,7 @@ namespace GamblingBuddies.Controllers
                 document.Open();
 
                 iTextSharp.text.Font titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18, new BaseColor(139, 0, 0));
-                iTextSharp.text.Paragraph title = new iTextSharp.text.Paragraph("RAPORT PŁATNOŚCI KASYNA", titleFont);
+                iTextSharp.text.Paragraph title = new iTextSharp.text.Paragraph("RAPORT PLATNOSCI KASYNA", titleFont);
                 title.Alignment = Element.ALIGN_CENTER;
                 document.Add(title);
 
@@ -188,7 +188,7 @@ namespace GamblingBuddies.Controllers
 
                 document.Add(new iTextSharp.text.Paragraph("Informacje o raporcie:", boldFont));
                 document.Add(new iTextSharp.text.Paragraph($"Data generowania: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", normalFont));
-                document.Add(new iTextSharp.text.Paragraph($"Okres od: {startDate?.ToShortDateString() ?? "od poczatku"} do: {endDate?.ToShortDateString() ?? "do czasu wygenerowania"}", normalFont));
+                document.Add(new iTextSharp.text.Paragraph($"Okres od: {startDate?.ToShortDateString() ?? "poczatku"} do: {endDate?.ToShortDateString() ?? "czasu wygenerowania"}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph($"Metoda platnosci: {paymentMethod ?? "Wszystkie"}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph($"Status: {status ?? "Wszystkie"}", normalFont));
                 document.Add(new iTextSharp.text.Paragraph(" "));
@@ -241,7 +241,7 @@ namespace GamblingBuddies.Controllers
                 document.Add(new iTextSharp.text.Paragraph(" "));
                 document.Add(new iTextSharp.text.Paragraph(" "));
                 iTextSharp.text.Font footerFont = FontFactory.GetFont(FontFactory.HELVETICA_OBLIQUE, 8, new BaseColor(128, 128, 128));
-                iTextSharp.text.Paragraph footer = new iTextSharp.text.Paragraph("Wygenerowano przez system zarządzania kasynem GamblingBuddies", footerFont);
+                iTextSharp.text.Paragraph footer = new iTextSharp.text.Paragraph("Wygenerowano przez system zarzadzania kasynem GamblingBuddies", footerFont);
                 footer.Alignment = Element.ALIGN_CENTER;
                 document.Add(footer);
 
