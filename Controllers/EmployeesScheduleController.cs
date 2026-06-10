@@ -220,14 +220,27 @@ namespace GamblingBuddies.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteWorkShift(int id)
         {
-            var workShift = await _context.WorkShifts.FindAsync(id);
+            var workShift = await _context.WorkShifts
+                .FirstOrDefaultAsync(ws => ws.WorkShiftId == id);
+
             if (workShift == null)
                 return NotFound();
 
+            var assignmentsToDelete = await _context.EmployeeAssignments
+                .Include(a => a.GameSession)
+                .Where(a =>
+                    a.EmployeeId == workShift.EmployeeId &&
+                    a.GameSession.StartAt >= workShift.StartAt &&
+                    a.GameSession.EndAt <= workShift.EndAt)
+                .ToListAsync();
+
+            _context.EmployeeAssignments.RemoveRange(assignmentsToDelete);
             _context.WorkShifts.Remove(workShift);
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Zmiana została usunięta.";
+            TempData["Success"] = $"Zmiana została usunięta. Usunięto też {assignmentsToDelete.Count} przypisań pracownika z tego czasu.";
+
             return RedirectToAction(nameof(WorkShifts));
         }
 

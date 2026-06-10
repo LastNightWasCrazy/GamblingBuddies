@@ -374,12 +374,15 @@ namespace GamblingBuddies.Controllers
                 });
             }
 
+            const decimal pricePerHour = 50m;
+            decimal totalAmount = DurationHours * pricePerHour;
+
             var payment = new Payment
             {
                 ReservationId = reservation.ReservationId,
                 PaymentMethodId = paymentMethod.PaymentMethodId,
                 PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
-                Amount = Quantity * DurationHours * 50,
+                Amount = totalAmount,
                 CreatedAt = DateTime.Now
             };
 

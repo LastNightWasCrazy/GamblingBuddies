@@ -188,6 +188,19 @@ namespace GamblingBuddies.Controllers
 
             try
             {
+                var gameSessionId = reservation.GameSessionId;
+
+                // Usuwamy przypisania pracowników do tej sesji,
+                // bo inaczej baza nie pozwoli usunąć GameSession.
+                var assignmentsToDelete = await _context.EmployeeAssignments
+                    .Where(a => a.GameSessionId == gameSessionId)
+                    .ToListAsync();
+
+                if (assignmentsToDelete.Any())
+                {
+                    _context.EmployeeAssignments.RemoveRange(assignmentsToDelete);
+                }
+
                 foreach (var payment in reservation.Payments)
                 {
                     if (payment.PaymentTransactions != null && payment.PaymentTransactions.Any())
@@ -207,9 +220,26 @@ namespace GamblingBuddies.Controllers
                 }
 
                 _context.Reservations.Remove(reservation);
+
+                var sessionUsedByOtherReservations = await _context.Reservations
+                    .AnyAsync(r =>
+                        r.GameSessionId == gameSessionId &&
+                        r.ReservationId != reservation.ReservationId);
+
+                if (!sessionUsedByOtherReservations)
+                {
+                    var gameSession = await _context.GameSessions
+                        .FirstOrDefaultAsync(gs => gs.GameSessionId == gameSessionId);
+
+                    if (gameSession != null)
+                    {
+                        _context.GameSessions.Remove(gameSession);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Rezerwacja została usunięta.";
+                TempData["Success"] = $"Rezerwacja została usunięta. Usunięto też sesję gry oraz {assignmentsToDelete.Count} przypisań pracowników do tej sesji.";
             }
             catch (Exception ex)
             {
