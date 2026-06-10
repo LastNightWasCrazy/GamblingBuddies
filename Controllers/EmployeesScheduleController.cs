@@ -362,10 +362,6 @@ namespace GamblingBuddies.Controllers
                 return;
             }
 
-            // Pracownik może zostać przypisany do sesji tylko wtedy,
-            // gdy cała sesja mieści się w jego zmianie pracy.
-            // Przykład OK: zmiana 08:00-16:00, sesja 10:00-12:00.
-            // Przykład NIE: zmiana 08:00-16:00, sesja 15:00-18:00.
             var matchingWorkShiftExists = _context.WorkShifts.Any(ws =>
                 ws.EmployeeId == model.EmployeeId &&
                 ws.StartAt <= selectedSession.StartAt &&

@@ -92,15 +92,6 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go", "Reservation");
             }
 
-            /*
-                WAŻNE:
-                Tutaj NIE ustawiamy już statusu Paid.
-                PayU wraca do Continue zarówno po zatwierdzeniu,
-                jak i po odrzuceniu/anulowaniu płatności.
-
-                Status ma ustawić metoda Notify().
-            */
-
             TempData["Success"] = "Wrócono z PayU. Status płatności zostanie zaktualizowany po powiadomieniu z PayU.";
 
             return RedirectToAction("Go", "Reservation");

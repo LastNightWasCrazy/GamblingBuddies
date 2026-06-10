@@ -190,8 +190,6 @@ namespace GamblingBuddies.Controllers
             {
                 var gameSessionId = reservation.GameSessionId;
 
-                // Usuwamy przypisania pracowników do tej sesji,
-                // bo inaczej baza nie pozwoli usunąć GameSession.
                 var assignmentsToDelete = await _context.EmployeeAssignments
                     .Where(a => a.GameSessionId == gameSessionId)
                     .ToListAsync();
