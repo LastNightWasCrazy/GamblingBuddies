@@ -5392,23 +5392,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\XXXX\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Bartek\\.nuget\\packages\\": {},
+    "D:\\vs3\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\XXXX\\source\\repos\\GamblingBuddies\\GamblingBuddies.csproj",
+      "projectUniqueName": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
       "projectName": "GamblingBuddies",
-      "projectPath": "C:\\Users\\XXXX\\source\\repos\\GamblingBuddies\\GamblingBuddies.csproj",
-      "packagesPath": "C:\\Users\\XXXX\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\XXXX\\source\\repos\\GamblingBuddies\\obj\\",
+      "projectPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+      "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "D:\\vs3\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\XXXX\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Bartek\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -5417,7 +5417,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -5490,8 +5489,16 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.314/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
+    }
+  ]
 }

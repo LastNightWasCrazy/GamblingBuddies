@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edycja rezerwacji";
+    int? currentPaymentStatusId = ViewBag.CurrentPaymentStatusId as int?;
 }
 
 <div class="container mt-4">
@@ -20,9 +21,17 @@
                         </div>
                     }
 
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit" asp-route-id="@Model.ReservationId" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="ReservationId" />
 
@@ -72,9 +81,9 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label asp-for="ReservationStatusId" class="form-label">Status</label>
+                            <label asp-for="ReservationStatusId" class="form-label">Status rezerwacji</label>
                             <select asp-for="ReservationStatusId" class="form-control">
-                                <option value="">-- Wybierz status --</option>
+                                <option value="">-- Wybierz status rezerwacji --</option>
                                 @if (ViewBag.ReservationStatuses != null)
                                 {
                                     foreach (var status in ViewBag.ReservationStatuses)
@@ -91,6 +100,28 @@
                                 }
                             </select>
                             <span asp-validation-for="ReservationStatusId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Status płatności</label>
+                            <select name="paymentStatusId" class="form-control">
+                                <option value="">-- Wybierz status płatności --</option>
+                                @if (ViewBag.PaymentStatuses != null)
+                                {
+                                    foreach (var status in ViewBag.PaymentStatuses)
+                                    {
+                                        if (currentPaymentStatusId.HasValue && status.PaymentStatusId == currentPaymentStatusId.Value)
+                                        {
+                                            <option value="@status.PaymentStatusId" selected>@status.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@status.PaymentStatusId">@status.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <small class="text-muted">To pole zmienia rekord w tabeli Payments.</small>
                         </div>
 
                         <div class="form-group mb-3">
