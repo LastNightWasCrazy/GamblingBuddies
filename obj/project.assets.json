@@ -5398,11 +5398,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+      "projectUniqueName": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
       "projectName": "GamblingBuddies",
-      "projectPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+      "projectPath": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
       "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\",
+      "outputPath": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\vs3\\NuGetPackages"
@@ -5492,13 +5492,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0."
-    }
-  ]
+  }
 }

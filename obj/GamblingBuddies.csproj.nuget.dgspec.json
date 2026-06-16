@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {}
+    "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {
+    "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+        "projectUniqueName": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
         "projectName": "GamblingBuddies",
-        "projectPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+        "projectPath": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
         "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\",
+        "outputPath": "C:\\Users\\Bartek\\Source\\Repos\\GamblingBuddies\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\vs3\\NuGetPackages"

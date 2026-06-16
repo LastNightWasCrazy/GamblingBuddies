@@ -15,8 +15,21 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int page)
         {
+
+            int pageSize = 20;
+
+            if (page < 0)
+            {
+                page = 1;
+            }
+
+            var totalReservations = await _context.Reservations.CountAsync();
+
+            var totalPages = (int)Math.Ceiling(totalReservations / (double)pageSize);
+
+
             var reservations = _context.Reservations
                 .Include(r => r.Player)
                 .Include(r => r.GameSession)
@@ -24,6 +37,7 @@ namespace GamblingBuddies.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Payments)
                     .ThenInclude(p => p.PaymentStatus)
+                .OrderByDescending(r => r.ReservedAt)
                 .ToList();
 
             return View(reservations);
