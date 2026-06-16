@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {}
+    "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj": {
+    "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
+        "projectUniqueName": "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
         "projectName": "GamblingBuddies",
-        "projectPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\GamblingBuddies.csproj",
-        "packagesPath": "C:\\Users\\Bartek\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Bartek\\Desktop\\ProjektNET\\obj\\",
+        "projectPath": "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\GamblingBuddies.csproj",
+        "packagesPath": "C:\\Users\\XXXX\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\XXXX\\Source\\Repos\\GamblingBuddies\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "D:\\vs3\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Bartek\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\XXXX\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -50,6 +51,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Bogus": {
+              "target": "Package",
+              "version": "[35.6.5, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.15, )"
@@ -98,7 +103,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.314/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

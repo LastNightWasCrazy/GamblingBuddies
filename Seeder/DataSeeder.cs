@@ -1,21 +1,197 @@
 ﻿using GamblingBuddies.Models;
+using Bogus;
+
 
 namespace GamblingBuddies
 {
     public static class DataSeeder
     {
+        private static void SeedLargeRandomData(AppDbContext context)
+        {
+            var faker = new Bogus.Faker("pl");
+
+            if (context.Players.Count() < 200)
+            {
+                var playersToCreate = 200 - context.Players.Count();
+                var players = new List<Player>();
+
+                for (int i = 0; i < playersToCreate; i++)
+                {
+                    players.Add(new Player
+                    {
+                        FirstName = faker.Name.FirstName(),
+                        LastName = faker.Name.LastName(),
+                        Email = faker.Internet.Email(),
+                        Phone = faker.Phone.PhoneNumber("#########"),
+                        CreatedAt = faker.Date.Past(1)
+                    });
+                }
+
+                context.Players.AddRange(players);
+                context.SaveChanges();
+            }
+
+            if (context.Reservations.Count() < 500)
+            {
+                var players = context.Players.ToList();
+                var sessions = context.GameSessions.ToList();
+                var statuses = context.ReservationStatusDictionaries.ToList();
+
+                if (players.Any() && sessions.Any() && statuses.Any())
+                {
+                    var reservationsToCreate = 500 - context.Reservations.Count();
+                    var reservations = new List<Reservation>();
+
+                    for (int i = 0; i < reservationsToCreate; i++)
+                    {
+                        var player = players[faker.Random.Int(0, players.Count - 1)];
+                        var session = sessions[faker.Random.Int(0, sessions.Count - 1)];
+                        var status = statuses[faker.Random.Int(0, statuses.Count - 1)];
+
+                        reservations.Add(new Reservation
+                        {
+                            PlayerId = player.PlayerId,
+                            GameSessionId = session.GameSessionId,
+                            ReservationStatusId = status.ReservationStatusId,
+                            ReservedAt = faker.Date.Recent(60)
+                        });
+                    }
+
+                    context.Reservations.AddRange(reservations);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.Payments.Count() < 300)
+            {
+                var reservations = context.Reservations.ToList();
+                var paymentMethods = context.PaymentMethods.ToList();
+                var paymentStatuses = context.PaymentStatuses.ToList();
+
+                if (reservations.Any() && paymentMethods.Any() && paymentStatuses.Any())
+                {
+                    var paymentsToCreate = 300 - context.Payments.Count();
+                    var payments = new List<Payment>();
+
+                    for (int i = 0; i < paymentsToCreate; i++)
+                    {
+                        var reservation = reservations[faker.Random.Int(0, reservations.Count - 1)];
+
+                        payments.Add(new Payment
+                        {
+                            ReservationId = reservation.ReservationId,
+                            PaymentMethodId = paymentMethods[faker.Random.Int(0, paymentMethods.Count - 1)].PaymentMethodId,
+                            PaymentStatusId = paymentStatuses[faker.Random.Int(0, paymentStatuses.Count - 1)].PaymentStatusId,
+                            Amount = faker.Random.Decimal(50, 1000),
+                            CreatedAt = faker.Date.Recent(60),
+                            PaidAt = faker.Random.Bool(0.45f) ? faker.Date.Recent(30) : null,
+                            ExternalOrderId = $"TEST-{Guid.NewGuid()}",
+                            PaymentProviderOrderId = faker.Random.Bool(0.6f) ? $"PROV-{Guid.NewGuid()}" : null,
+                            PaymentProvider = "Seed"
+                        });
+                    }
+
+                    context.Payments.AddRange(payments);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.Employees.Count() < 80)
+            {
+                var employeePositions = context.EmployeePositionDictionaries.ToList();
+                var employeeStatuses = context.EmployeeStatusDictionaries.ToList();
+
+                if (employeePositions.Any() && employeeStatuses.Any())
+                {
+                    var employeesToCreate = 80 - context.Employees.Count();
+                    var employees = new List<Employee>();
+
+                    for (int i = 0; i < employeesToCreate; i++)
+                    {
+                        employees.Add(new Employee
+                        {
+                            SystemUserId = null,
+                            FirstName = faker.Name.FirstName(),
+                            LastName = faker.Name.LastName(),
+                            Phone = faker.Phone.PhoneNumber("#########"),
+                            HireDate = faker.Date.Past(3),
+                            PositionId = employeePositions[faker.Random.Int(0, employeePositions.Count - 1)].EmployeePositionDictionaryId,
+                            EmployeeStatusId = employeeStatuses[faker.Random.Int(0, employeeStatuses.Count - 1)].EmployeeStatusDictionaryId
+                        });
+                    }
+
+                    context.Employees.AddRange(employees);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.WorkShifts.Count() < 300)
+            {
+                var employees = context.Employees.ToList();
+                var users = context.SystemUsers.ToList();
+
+                if (employees.Any() && users.Any())
+                {
+                    var shiftsToCreate = 300 - context.WorkShifts.Count();
+                    var shifts = new List<WorkShift>();
+
+                    for (int i = 0; i < shiftsToCreate; i++)
+                    {
+                        var start = faker.Date.Between(DateTime.Now.AddDays(-30), DateTime.Now.AddDays(30));
+
+                        shifts.Add(new WorkShift
+                        {
+                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
+                            StartAt = start,
+                            EndAt = start.AddHours(faker.Random.Int(6, 10)),
+                            CreatedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId
+                        });
+                    }
+
+                    context.WorkShifts.AddRange(shifts);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.EmployeeAssignments.Count() < 200)
+            {
+                var employees = context.Employees.ToList();
+                var sessions = context.GameSessions.ToList();
+                var users = context.SystemUsers.ToList();
+
+                if (employees.Any() && sessions.Any() && users.Any())
+                {
+                    var assignmentsToCreate = 200 - context.EmployeeAssignments.Count();
+                    var assignments = new List<EmployeeAssignment>();
+
+                    for (int i = 0; i < assignmentsToCreate; i++)
+                    {
+                        assignments.Add(new EmployeeAssignment
+                        {
+                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
+                            GameSessionId = sessions[faker.Random.Int(0, sessions.Count - 1)].GameSessionId,
+                            AssignedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId,
+                            Notes = faker.Lorem.Sentence(6)
+                        });
+                    }
+
+                    context.EmployeeAssignments.AddRange(assignments);
+                    context.SaveChanges();
+                }
+            }
+        }
         public static void Seed(AppDbContext context)
         {
             SeedRolesAndUsers(context);
 
-            if (context.Set<Hall>().Any() ||
-                context.Set<Game>().Any() ||
-                context.Set<GameTable>().Any())
+            if (!context.Set<Hall>().Any() &&
+                !context.Set<Game>().Any() &&
+                !context.Set<GameTable>().Any())
             {
-                return;
+                SeedBusinessData(context);
             }
 
-            SeedBusinessData(context);
+            SeedLargeRandomData(context);
         }
 
         private static void SeedRolesAndUsers(AppDbContext context)

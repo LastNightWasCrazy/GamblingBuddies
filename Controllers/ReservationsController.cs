@@ -15,16 +15,29 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
-            var reservations = _context.Reservations
+            int pageSize = 30;
+
+            var query = _context.Reservations
                 .Include(r => r.Player)
+                .Include(r => r.ReservationStatus)
                 .Include(r => r.GameSession)
                     .ThenInclude(gs => gs.GameVariant)
-                .Include(r => r.ReservationStatus)
-                .Include(r => r.Payments)
-                    .ThenInclude(p => p.PaymentStatus)
+                .Include(r => r.GameSession)
+                    .ThenInclude(gs => gs.GameTable)
+                        .ThenInclude(gt => gt.Hall)
+                .OrderByDescending(r => r.ReservedAt);
+
+            int totalItems = query.Count();
+
+            var reservations = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             return View(reservations);
         }

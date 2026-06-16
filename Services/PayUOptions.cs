@@ -6,5 +6,6 @@
         public string ClientId { get; set; } = "";
         public string ClientSecret { get; set; } = "";
         public string MerchantPosId { get; set; } = "";
+        public string SecondKey { get; set; } = "";
     }
 }
