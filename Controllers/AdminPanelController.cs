@@ -34,5 +34,29 @@ namespace GamblingBuddies.Controllers
 
             return View(tables);
         }
+
+        public IActionResult PendingUsers()
+        {
+            var users = _context.SystemUsers
+                .Where(u => !u.IsApproved)
+                .ToList();
+
+            return View(users);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApproveUser(int id)
+        {
+            var user = await _context.SystemUsers.FindAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            user.IsApproved = true;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(PendingUsers));
+        }
     }
 }

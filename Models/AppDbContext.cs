@@ -81,6 +81,37 @@ namespace GamblingBuddies.Models
                 .HasOne(x => x.Game)
                 .WithMany(g => g.GameTableGames)
                 .HasForeignKey(x => x.GameId);
+
+            modelBuilder.Entity<SystemUser>()
+    .HasIndex(u => u.Login)
+    .IsUnique();
+
+            modelBuilder.Entity<SystemUser>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Reservation>()
+                .HasIndex(r => r.ReservedAt);
+
+            modelBuilder.Entity<Payment>()
+                .HasIndex(p => p.CreatedAt);
+
+            modelBuilder.Entity<GameVariant>()
+    .Property(g => g.DefaultMinBet)
+    .HasPrecision(18, 2);
+
+            modelBuilder.Entity<GameVariant>()
+                .Property(g => g.DefaultMaxBet)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentReport>()
+                .Property(p => p.TotalAmount)
+                .HasPrecision(18, 2);
         }
     }
+
 }

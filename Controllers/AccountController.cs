@@ -29,7 +29,7 @@ namespace GamblingBuddies.Controllers
             var user = _context.SystemUsers
     .Include(u => u.UserRoles)
         .ThenInclude(ur => ur.RoleDictionary)
-    .FirstOrDefault(u => u.Login == login && u.IsActive);
+    .FirstOrDefault(u => u.Login == login && u.IsActive && u.IsApproved);
 
             if (user == null)
             {
@@ -74,6 +74,40 @@ namespace GamblingBuddies.Controllers
 
         public IActionResult AccessDenied()
         {
+            return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register(string login, string email, string password)
+        {
+            if (_context.SystemUsers.Any(u => u.Login == login || u.Email == email))
+            {
+                ViewBag.Error = "Login lub email już istnieje.";
+                return View();
+            }
+
+            var user = new SystemUser
+            {
+                Login = login,
+                Email = email,
+                PasswordHash = password,
+                IsActive = true,
+                IsApproved = false,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.SystemUsers.Add(user);
+            await _context.SaveChangesAsync();
+
+            ViewBag.Success = "Konto utworzone. Czeka na akceptację administratora.";
             return View();
         }
     }
