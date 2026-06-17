@@ -18,7 +18,6 @@ namespace GamblingBuddies.Models
         public DbSet<Player> Players { get; set; }
         public DbSet<RegistrationRequest> RegistrationRequests { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<ReservationSeat> ReservationSeats { get; set; }
         public DbSet<ReservationStatusDictionary> ReservationStatusDictionaries { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
@@ -31,7 +30,6 @@ namespace GamblingBuddies.Models
         public DbSet<ReportExecution> ReportExecutions { get; set; }
         public DbSet<Hall> Halls { get; set; }
         public DbSet<GameTable> GameTables { get; set; }
-        public DbSet<Seat> Seats { get; set; }
         public DbSet<Game> Games { get; set; }
         public DbSet<GameVariant> GameVariants { get; set; }
         public DbSet<GameSession> GameSessions { get; set; }

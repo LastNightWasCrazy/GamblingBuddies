@@ -241,7 +241,6 @@ namespace GamblingBuddies.Controllers
             }
 
             var table = _context.GameTables
-                .Include(t => t.Seats)
                 .Include(t => t.GameTableGames)
                 .FirstOrDefault(t =>
                     t.GameTableId == GameTableId &&
@@ -357,22 +356,6 @@ namespace GamblingBuddies.Controllers
 
             _context.Reservations.Add(reservation);
             _context.SaveChanges();
-
-            var seatsForReservation = table.Seats
-                .Where(s => s.IsActive)
-                .OrderBy(s => s.SeatNumber)
-                .Take(Quantity)
-                .ToList();
-
-            foreach (var seat in seatsForReservation)
-            {
-                _context.ReservationSeats.Add(new ReservationSeat
-                {
-                    ReservationId = reservation.ReservationId,
-                    SeatId = seat.SeatId,
-                    GameSessionId = session.GameSessionId
-                });
-            }
 
             const decimal pricePerHour = 50m;
             decimal totalAmount = DurationHours * pricePerHour;

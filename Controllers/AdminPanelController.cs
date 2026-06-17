@@ -29,7 +29,6 @@ namespace GamblingBuddies.Controllers
         {
             var tables = _context.GameTables
                 .Include(t => t.Hall)
-                .Include(t => t.Seats)
                 .ToList();
 
             return View(tables);

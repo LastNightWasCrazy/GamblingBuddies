@@ -55,8 +55,6 @@ namespace GamblingBuddies.Controllers
                         .ThenInclude(gs => gs.GameTable)
                             .ThenInclude(gt => gt.Hall)
                     .Include(r => r.ReservationStatus)
-                    .Include(r => r.ReservationSeats)
-                        .ThenInclude(rs => rs.Seat)
                     .FirstOrDefaultAsync(r => r.ReservationId == id);
 
                 if (reservation == null)
@@ -85,11 +83,6 @@ namespace GamblingBuddies.Controllers
                     } : null,
                     reservation.ReservedAt,
                     Status = reservation.ReservationStatus != null ? reservation.ReservationStatus.Name : "Brak",
-                    Seats = reservation.ReservationSeats != null ? reservation.ReservationSeats.Select(rs => new
-                    {
-                        SeatId = rs.Seat != null ? rs.Seat.SeatId : 0,
-                        SeatNumber = rs.Seat != null ? rs.Seat.SeatNumber : 0
-                    }) : null
                 };
 
                 return Ok(result);

@@ -52,45 +52,45 @@
                     <h4>Informacje o sesji gry</h4>
                     <dl class="row">
                         <dt class="col-sm-4">Sesja ID</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.GameSessionId</dd>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameSessionId.ToString() ?? "Brak")</dd>
 
                         <dt class="col-sm-4">Gra</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.GameVariant?.Game?.Name</dd>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameVariant?.Game?.Name ?? "Brak")</dd>
 
                         <dt class="col-sm-4">Wariant</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.GameVariant?.Name</dd>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameVariant?.Name ?? "Brak")</dd>
 
                         <dt class="col-sm-4">Data rozpoczęcia</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.StartAt.ToString("yyyy-MM-dd HH:mm")</dd>
+                        <dd class="col-sm-8">@(Model.GameSession != null ? Model.GameSession.StartAt.ToString("yyyy-MM-dd HH:mm") : "Brak")</dd>
 
                         <dt class="col-sm-4">Data zakończenia</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.EndAt.ToString("yyyy-MM-dd HH:mm")</dd>
+                        <dd class="col-sm-8">@(Model.GameSession != null ? Model.GameSession.EndAt.ToString("yyyy-MM-dd HH:mm") : "Brak")</dd>
 
                         <dt class="col-sm-4">Stół</dt>
-                        <dd class="col-sm-8">Stół #@Model.GameSession?.GameTable?.TableNumber</dd>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameTable != null ? $"Stół #{Model.GameSession.GameTable.TableNumber}" : "Brak")</dd>
 
                         <dt class="col-sm-4">Sala</dt>
-                        <dd class="col-sm-8">@Model.GameSession?.GameTable?.Hall?.Name</dd>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameTable?.Hall?.Name ?? "Brak")</dd>
                     </dl>
                 </div>
 
                 <div class="col-md-6">
-                    <h4>Zajęte miejsca</h4>
-                    @if (Model.ReservationSeats != null && Model.ReservationSeats.Any())
-                    {
-                        <ul class="list-group">
-                            @foreach (var seat in Model.ReservationSeats)
-                            {
-                                <li class="list-group-item" style="background-color: #3a0000; color: white;">
-                                    Miejsce #@seat.Seat?.SeatNumber
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p>Brak zajętych miejsc</p>
-                    }
+                    <h4>Informacje o stole</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Minimalna liczba graczy</dt>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameTable?.MinPlayers.ToString() ?? "Brak")</dd>
+
+                        <dt class="col-sm-4">Maksymalna liczba graczy</dt>
+                        <dd class="col-sm-8">@(Model.GameSession?.GameTable?.MaxPlayers.ToString() ?? "Brak")</dd>
+
+                        <dt class="col-sm-4">Typ rezerwacji</dt>
+                        <dd class="col-sm-8">Cały stół</dd>
+                    </dl>
+
+                    <p class="text-muted mb-0">
+                        W tej wersji projektu nie zapisujemy już konkretnych krzeseł.
+                        Rezerwacja jest przypisana do sesji gry, a sesja do konkretnego stołu.
+                    </p>
                 </div>
             </div>
 
