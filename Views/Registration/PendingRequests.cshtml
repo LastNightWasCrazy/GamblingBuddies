@@ -1,0 +1,84 @@
+﻿@model IEnumerable<GamblingBuddies.Models.RegistrationRequest>
+
+@{
+    ViewData["Title"] = "Do zatwierdzenia";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="mb-0">Zgłoszenia do zatwierdzenia</h1>
+        <a asp-action="History" class="btn btn-secondary">Historia</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Imię</th>
+                            <th>Nazwisko</th>
+                            <th>Telefon</th>
+                            <th>Login</th>
+                            <th>Data zgłoszenia</th>
+                            <th>Rola</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td>@request.RegistrationRequestId</td>
+                                <td>@request.FirstName</td>
+                                <td>@request.LastName</td>
+                                <td>@request.Phone</td>
+                                <td>@request.Login</td>
+                                <td>@request.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <form asp-action="Approve" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <select name="role" class="form-select form-select-sm bg-dark text-white" style="display:inline-block; width:auto;" required>
+                                            <option value="">-- Wybierz rolę --</option>
+                                            <option value="Administrator">Administrator</option>
+                                            <option value="Manager">Manager</option>
+                                            <option value="Employee">Employee</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Zatwierdzić zgłoszenie?')">Zatwierdź</button>
+                                    <form asp-action="Reject" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Odrzucić zgłoszenie?')">Odrzuć</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center m-3">Brak oczekujących zgłoszeń.</div>
+            }
+        </div>
+    </div>
+</div>

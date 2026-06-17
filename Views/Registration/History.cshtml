@@ -1,0 +1,65 @@
+﻿@model IEnumerable<GamblingBuddies.Models.RegistrationRequest>
+
+@{
+    ViewData["Title"] = "Historia zgłoszeń";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="mb-0">Historia zgłoszeń</h1>
+        <a asp-action="PendingRequests" class="btn btn-primary">Do zatwierdzenia</a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Imię</th>
+                            <th>Nazwisko</th>
+                            <th>Login</th>
+                            <th>Status</th>
+                            <th>Data zgłoszenia</th>
+                            <th>Data przetworzenia</th>
+                            <th>Przetworzone przez</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td>@request.RegistrationRequestId</td>
+                                <td>@request.FirstName</td>
+                                <td>@request.LastName</td>
+                                <td>@request.Login</td>
+                                <td>
+                                    @if (request.Status == "Approved")
+                                    {
+                                        <span class="badge bg-success">Zatwierdzono</span>
+                                    }
+                                    else if (request.Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Odrzucono</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Oczekuje</span>
+                                    }
+                                </td>
+                                <td>@request.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@(request.ProcessedAt?.ToString("yyyy-MM-dd HH:mm") ?? "Brak")</td>
+                                <td>@(request.ProcessedByUser?.Login ?? "Brak")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center m-3">Brak przetworzonych zgłoszeń.</div>
+            }
+        </div>
+    </div>
+</div>
