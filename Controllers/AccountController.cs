@@ -27,9 +27,9 @@ namespace GamblingBuddies.Controllers
         public async Task<IActionResult> Login(string login, string password)
         {
             var user = _context.SystemUsers
-    .Include(u => u.UserRoles)
-        .ThenInclude(ur => ur.RoleDictionary)
-    .FirstOrDefault(u => u.Login == login && u.IsActive && u.IsApproved);
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.RoleDictionary)
+            .FirstOrDefault(u => u.Login == login && u.IsActive && u.IsApproved);
 
             if (user == null)
             {
@@ -44,10 +44,10 @@ namespace GamblingBuddies.Controllers
             }
 
             var claims = new List<Claim>
-{
-    new Claim(ClaimTypes.NameIdentifier, user.SystemUserId.ToString()),
-    new Claim(ClaimTypes.Name, user.Login)
-};
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.SystemUserId.ToString()),
+                new Claim(ClaimTypes.Name, user.Login)
+            };
 
             foreach (var userRole in user.UserRoles)
             {

@@ -29,6 +29,15 @@ namespace GamblingBuddies
                 {
                     options.LoginPath = "/Account/Login";
                     options.AccessDeniedPath = "/Account/AccessDenied";
+                    options.LogoutPath = "/Account/Logout";
+
+                    options.ExpireTimeSpan = TimeSpan.FromHours(2);
+                    options.SlidingExpiration = true;
+
+                    options.Cookie.Name = "GamblingBuddiesAuth";
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 });
 
             builder.Services.AddAuthorization();
