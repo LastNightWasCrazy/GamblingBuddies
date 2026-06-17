@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using GamblingBuddies.Services.PayU;
+using Microsoft.AspNetCore.Authentication;
 
 namespace GamblingBuddies
 {
@@ -14,9 +15,9 @@ namespace GamblingBuddies
 
             builder.Services.AddHttpClient<PayUService>()
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-                    {
-                        AllowAutoRedirect = false
-                    });
+                {
+                    AllowAutoRedirect = false
+                });
 
             builder.Services.AddControllersWithViews();
 
@@ -24,11 +25,11 @@ namespace GamblingBuddies
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddAuthentication("MyCookieAuth")
-            .AddCookie("MyCookieAuth", options =>
-            {
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
-            });
+                .AddCookie("MyCookieAuth", options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.AccessDeniedPath = "/Account/AccessDenied";
+                });
 
             builder.Services.AddAuthorization();
 
@@ -46,12 +47,6 @@ namespace GamblingBuddies
                 DataSeeder.Seed(context);
             }
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -65,6 +60,27 @@ namespace GamblingBuddies
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.Use(async (context, next) =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/swagger"))
+                    {
+                        if (context.User?.Identity?.IsAuthenticated != true ||
+                            !context.User.IsInRole("Administrator"))
+                        {
+                            await context.ChallengeAsync("MyCookieAuth");
+                            return;
+                        }
+                    }
+
+                    await next();
+                });
+
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
             app.MapControllerRoute(
                 name: "default",
