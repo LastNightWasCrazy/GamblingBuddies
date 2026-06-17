@@ -22,7 +22,6 @@ namespace GamblingBuddies.Models
         [Required(ErrorMessage = "Data rezerwacji jest wymagana")]
         public DateTime ReservedAt { get; set; }
 
-        public ICollection<ReservationSeat> ReservationSeats { get; set; } = new List<ReservationSeat>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }

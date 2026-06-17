@@ -58,8 +58,6 @@ namespace GamblingBuddies.Controllers
                     .ThenInclude(gs => gs.GameTable)
                         .ThenInclude(gt => gt.Hall)
                 .Include(r => r.ReservationStatus)
-                .Include(r => r.ReservationSeats)
-                    .ThenInclude(rs => rs.Seat)
                 .Include(r => r.Payments)
                     .ThenInclude(p => p.PaymentMethod)
                 .Include(r => r.Payments)
@@ -191,7 +189,6 @@ namespace GamblingBuddies.Controllers
             var reservation = await _context.Reservations
                 .Include(r => r.Payments)
                     .ThenInclude(p => p.PaymentTransactions)
-                .Include(r => r.ReservationSeats)
                 .FirstOrDefaultAsync(r => r.ReservationId == id);
 
             if (reservation == null)
@@ -225,10 +222,6 @@ namespace GamblingBuddies.Controllers
                     _context.Payments.RemoveRange(reservation.Payments);
                 }
 
-                if (reservation.ReservationSeats.Any())
-                {
-                    _context.ReservationSeats.RemoveRange(reservation.ReservationSeats);
-                }
 
                 _context.Reservations.Remove(reservation);
 
