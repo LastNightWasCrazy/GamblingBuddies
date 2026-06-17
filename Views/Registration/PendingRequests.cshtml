@@ -53,7 +53,7 @@
                                 <td>@request.Login</td>
                                 <td>@request.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
-                                    <form asp-action="Approve" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline;">
+                                    <form asp-action="Approve" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline-block;">
                                         @Html.AntiForgeryToken()
                                         <select name="role" class="form-select form-select-sm bg-dark text-white" style="display:inline-block; width:auto;" required>
                                             <option value="">-- Wybierz rolę --</option>
@@ -61,13 +61,11 @@
                                             <option value="Manager">Manager</option>
                                             <option value="Employee">Employee</option>
                                         </select>
+                                        <button type="submit" class="btn btn-sm btn-success">Zatwierdź</button>
                                     </form>
-                                </td>
-                                <td>
-                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Zatwierdzić zgłoszenie?')">Zatwierdź</button>
-                                    <form asp-action="Reject" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline;">
+                                    <form asp-action="Reject" asp-route-id="@request.RegistrationRequestId" method="post" style="display:inline-block;">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Odrzucić zgłoszenie?')">Odrzuć</button>
+                                        <button type="submit" class="btn btn-sm btn-danger">Odrzuć</button>
                                     </form>
                                 </td>
                             </tr>

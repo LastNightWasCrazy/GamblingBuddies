@@ -23,11 +23,13 @@ namespace GamblingBuddies.Models
 
         [Required(ErrorMessage = "Login jest wymagany")]
         [Display(Name = "Login")]
+        [RegularExpression(@"^[a-z]+$", ErrorMessage = "Login może zawierać tylko małe znaki.")]
         public string Login { get; set; }
 
         [Required(ErrorMessage = "Hasło jest wymagane")]
         [Display(Name = "Hasło")]
         [DataType(DataType.Password)]
+        [MinLength(6, ErrorMessage = "Hasło musi mieć co najmniej 6 znaków.")]
         public string PasswordHash { get; set; }
 
         [Display(Name = "Data zgłoszenia")]
@@ -43,6 +45,6 @@ namespace GamblingBuddies.Models
         public int? ProcessedByUserId { get; set; }
 
         [ForeignKey("ProcessedByUserId")]
-        public SystemUser ProcessedByUser { get; set; }
+        public SystemUser? ProcessedByUser { get; set; }
     }
 }
