@@ -12,10 +12,10 @@ namespace GamblingBuddies.Controllers
     public class PaymentController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly PayUService _payUService;
+        private readonly IPayUService _payUService;
         private readonly IConfiguration _configuration;
 
-        public PaymentController(AppDbContext context, PayUService payUService, IConfiguration configuration)
+        public PaymentController(AppDbContext context, IPayUService payUService, IConfiguration configuration)
         {
             _context = context;
             _payUService = payUService;

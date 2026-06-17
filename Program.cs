@@ -13,7 +13,7 @@ namespace GamblingBuddies
             builder.Services.Configure<PayUOptions>(
                 builder.Configuration.GetSection("PayU"));
 
-            builder.Services.AddHttpClient<PayUService>()
+            builder.Services.AddHttpClient<IPayUService, PayUService>()
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
                 {
                     AllowAutoRedirect = false

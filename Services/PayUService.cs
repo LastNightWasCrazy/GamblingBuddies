@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace GamblingBuddies.Services.PayU
 {
-    public class PayUService
+    public class PayUService : IPayUService
     {
         private readonly HttpClient _httpClient;
         private readonly PayUOptions _options;
