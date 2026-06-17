@@ -7,7 +7,7 @@ namespace GamblingBuddies.Controllers
 {
     [Authorize(Roles = "Administrator")]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api")]
     public class ApiController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -279,10 +279,11 @@ namespace GamblingBuddies.Controllers
             return Ok(games);
         }
 
-        [HttpGet("players")]
-        public async Task<IActionResult> GetPlayers()
+        [HttpGet("players/{id}")]
+        public async Task<IActionResult> GetPlayer(int id)
         {
-            var players = await _context.Players
+            var player = await _context.Players
+                .Where(p => p.PlayerId == id)
                 .Select(p => new
                 {
                     p.PlayerId,
@@ -292,9 +293,191 @@ namespace GamblingBuddies.Controllers
                     p.Phone,
                     p.CreatedAt
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            return Ok(players);
+            if (player == null)
+                return NotFound(new { message = "Gracz nie znaleziony" });
+
+            return Ok(player);
+        }
+
+        [HttpPost("players")]
+        public async Task<IActionResult> CreatePlayer([FromBody] PlayerCreateDto dto)
+        {
+            var player = new Player
+            {
+                FirstName = dto.FirstName.Trim(),
+                LastName = dto.LastName.Trim(),
+                Email = dto.Email.Trim(),
+                Phone = dto.Phone.Trim(),
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Players.Add(player);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetPlayer), new { id = player.PlayerId }, new
+            {
+                player.PlayerId,
+                player.FirstName,
+                player.LastName,
+                player.Email,
+                player.Phone,
+                player.CreatedAt
+            });
+        }
+
+        [HttpDelete("players/{id}")]
+        public async Task<IActionResult> DeletePlayer(int id)
+        {
+            var player = await _context.Players.FindAsync(id);
+
+            if (player == null)
+                return NotFound(new { message = "Gracz nie znaleziony" });
+
+            try
+            {
+                _context.Players.Remove(player);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (DbUpdateException)
+            {
+                return Conflict(new
+                {
+                    message = "Nie można usunąć gracza, bo ma powiązane rezerwacje albo płatności."
+                });
+            }
+        }
+
+        [HttpPost("games")]
+        public async Task<IActionResult> CreateGame([FromBody] GameCreateDto dto)
+        {
+            var categoryExists = await _context.GameCategoryDictionaries
+                .AnyAsync(c => c.GameCategoryId == dto.GameCategoryId);
+
+            if (!categoryExists)
+                return BadRequest(new { message = "Podana kategoria gry nie istnieje." });
+
+            var game = new Game
+            {
+                Name = dto.Name.Trim(),
+                GameCategoryId = dto.GameCategoryId,
+                Description = dto.Description,
+                IsActive = true
+            };
+
+            _context.Games.Add(game);
+            await _context.SaveChangesAsync();
+
+            return Created($"/api/games/{game.GameId}", new
+            {
+                game.GameId,
+                game.Name,
+                game.GameCategoryId,
+                game.Description,
+                game.IsActive
+            });
+        }
+
+        [HttpPost("halls")]
+        public async Task<IActionResult> CreateHall([FromBody] HallCreateDto dto)
+        {
+            var hallTypeExists = await _context.HallTypeDictionaries
+                .AnyAsync(ht => ht.HallTypeId == dto.HallTypeId);
+
+            if (!hallTypeExists)
+                return BadRequest(new { message = "Podany typ sali nie istnieje." });
+
+            var hall = new Hall
+            {
+                Name = dto.Name.Trim(),
+                HallTypeId = dto.HallTypeId,
+                Description = dto.Description ?? "",
+                IsActive = true
+            };
+
+            _context.Halls.Add(hall);
+            await _context.SaveChangesAsync();
+
+            return Created($"/api/halls/{hall.HallId}", new
+            {
+                hall.HallId,
+                hall.Name,
+                hall.HallTypeId,
+                hall.Description,
+                hall.IsActive
+            });
+        }
+
+        [HttpDelete("halls/{id}")]
+        public async Task<IActionResult> DeleteHall(int id)
+        {
+            var hall = await _context.Halls.FindAsync(id);
+
+            if (hall == null)
+                return NotFound(new { message = "Sala nie znaleziona" });
+
+            hall.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPost("tables")]
+        public async Task<IActionResult> CreateTable([FromBody] GameTableCreateDto dto)
+        {
+            if (dto.MinPlayers > dto.MaxPlayers)
+                return BadRequest(new { message = "Minimalna liczba graczy nie może być większa od maksymalnej." });
+
+            var hallExists = await _context.Halls
+                .AnyAsync(h => h.HallId == dto.HallId && h.IsActive);
+
+            if (!hallExists)
+                return BadRequest(new { message = "Podana sala nie istnieje albo jest nieaktywna." });
+
+            var tableNumberExists = await _context.GameTables
+                .AnyAsync(t => t.HallId == dto.HallId && t.TableNumber == dto.TableNumber && t.IsActive);
+
+            if (tableNumberExists)
+                return BadRequest(new { message = "W tej sali istnieje już aktywny stół o takim numerze." });
+
+            var table = new GameTable
+            {
+                HallId = dto.HallId,
+                TableNumber = dto.TableNumber,
+                MinPlayers = dto.MinPlayers,
+                MaxPlayers = dto.MaxPlayers,
+                IsActive = true
+            };
+
+            _context.GameTables.Add(table);
+            await _context.SaveChangesAsync();
+
+            return Created($"/api/tables/{table.GameTableId}", new
+            {
+                table.GameTableId,
+                table.HallId,
+                table.TableNumber,
+                table.MinPlayers,
+                table.MaxPlayers,
+                table.IsActive
+            });
+        }
+
+        [HttpDelete("tables/{id}")]
+        public async Task<IActionResult> DeleteTable(int id)
+        {
+            var table = await _context.GameTables.FindAsync(id);
+
+            if (table == null)
+                return NotFound(new { message = "Stół nie znaleziony" });
+
+            table.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

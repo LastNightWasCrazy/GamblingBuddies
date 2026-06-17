@@ -1,7 +1,10 @@
 ﻿using GamblingBuddies.Models;
 using GamblingBuddies.Services.PayU;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace GamblingBuddies.Controllers
@@ -9,10 +12,10 @@ namespace GamblingBuddies.Controllers
     public class PaymentController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly PayUService _payUService;
+        private readonly IPayUService _payUService;
         private readonly IConfiguration _configuration;
 
-        public PaymentController(AppDbContext context, PayUService payUService, IConfiguration configuration)
+        public PaymentController(AppDbContext context, IPayUService payUService, IConfiguration configuration)
         {
             _context = context;
             _payUService = payUService;
@@ -22,6 +25,12 @@ namespace GamblingBuddies.Controllers
         [HttpGet]
         public async Task<IActionResult> Pay(int reservationId)
         {
+            if (reservationId <= 0)
+            {
+                TempData["Error"] = "Niepoprawne ID rezerwacji.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
             var payment = await _context.Payments
                 .Include(p => p.Reservation)
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
@@ -29,6 +38,12 @@ namespace GamblingBuddies.Controllers
             if (payment == null)
             {
                 TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            if (payment.Amount <= 0)
+            {
+                TempData["Error"] = "Kwota płatności musi być większa od zera.";
                 return RedirectToAction("Go", "Reservation");
             }
 
@@ -42,10 +57,6 @@ namespace GamblingBuddies.Controllers
 
             var continueUrl = $"{publicUrl}/Payment/Continue?reservationId={reservationId}";
             var notifyUrl = $"{publicUrl}/Payment/Notify";
-
-            Console.WriteLine("PAYU CONTINUE URL: " + continueUrl);
-            Console.WriteLine("PAYU NOTIFY URL: " + notifyUrl);
-
             var customerIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
 
             try
@@ -59,7 +70,7 @@ namespace GamblingBuddies.Controllers
 
                 await _context.SaveChangesAsync();
 
-                if (string.IsNullOrEmpty(result.RedirectUri))
+                if (string.IsNullOrWhiteSpace(result.RedirectUri))
                 {
                     TempData["Error"] = "PayU nie zwróciło adresu płatności.";
                     return RedirectToAction("Go", "Reservation");
@@ -83,24 +94,31 @@ namespace GamblingBuddies.Controllers
         [HttpGet]
         public async Task<IActionResult> Continue(int reservationId)
         {
-            var payment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
+            var paymentExists = await _context.Payments
+                .AnyAsync(p => p.ReservationId == reservationId);
 
-            if (payment == null)
+            if (!paymentExists)
             {
                 TempData["Error"] = "Nie znaleziono płatności.";
                 return RedirectToAction("Go", "Reservation");
             }
 
             TempData["Success"] = "Wrócono z PayU. Status płatności zostanie zaktualizowany po powiadomieniu z PayU.";
-
             return RedirectToAction("Go", "Reservation");
         }
 
+        [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]
         public async Task<IActionResult> Reject(int reservationId)
         {
+            if (reservationId <= 0)
+            {
+                TempData["Error"] = "Niepoprawne ID rezerwacji.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
             var payment = await _context.Payments
+                .Include(p => p.Reservation)
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
             if (payment == null)
@@ -111,11 +129,11 @@ namespace GamblingBuddies.Controllers
 
             await SetPaymentRejected(
                 payment,
-                "PAYU_REJECT",
-                "Płatność została odrzucona lub anulowana."
+                "MANUAL_REJECT",
+                "Płatność została ręcznie odrzucona w systemie."
             );
 
-            TempData["Error"] = "Płatność została odrzucona lub anulowana.";
+            TempData["Error"] = "Płatność została odrzucona.";
             return RedirectToAction("Go", "Reservation");
         }
 
@@ -123,18 +141,17 @@ namespace GamblingBuddies.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Notify()
         {
-            Console.WriteLine("========== PAYU NOTIFY PRZYSZŁO ==========");
-
-            using var reader = new StreamReader(Request.Body);
+            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
             var body = await reader.ReadToEndAsync();
-
-            Console.WriteLine("PAYU BODY:");
-            Console.WriteLine(body);
 
             if (string.IsNullOrWhiteSpace(body))
             {
-                Console.WriteLine("PAYU BODY PUSTE");
                 return BadRequest("Puste body webhooka PayU.");
+            }
+
+            if (!IsValidPayUSignature(body))
+            {
+                return Unauthorized("Niepoprawny podpis PayU.");
             }
 
             JsonDocument document;
@@ -143,10 +160,8 @@ namespace GamblingBuddies.Controllers
             {
                 document = JsonDocument.Parse(body);
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine("Błąd parsowania JSON:");
-                Console.WriteLine(ex.Message);
                 return BadRequest("Niepoprawny JSON z PayU.");
             }
 
@@ -154,7 +169,6 @@ namespace GamblingBuddies.Controllers
             {
                 if (!document.RootElement.TryGetProperty("order", out var order))
                 {
-                    Console.WriteLine("Brak pola order w JSON");
                     return BadRequest("Brak pola order w webhooku PayU.");
                 }
 
@@ -162,17 +176,13 @@ namespace GamblingBuddies.Controllers
                     ? orderIdElement.GetString()
                     : null;
 
-                var status = order.TryGetProperty("status", out var statusElement)
-                    ? statusElement.GetString()
-                    : null;
-
                 var extOrderId = order.TryGetProperty("extOrderId", out var extOrderIdElement)
                     ? extOrderIdElement.GetString()
                     : null;
 
-                Console.WriteLine("PAYU orderId: " + orderId);
-                Console.WriteLine("PAYU extOrderId: " + extOrderId);
-                Console.WriteLine("PAYU status: " + status);
+                var status = order.TryGetProperty("status", out var statusElement)
+                    ? statusElement.GetString()
+                    : null;
 
                 if (string.IsNullOrWhiteSpace(orderId) && string.IsNullOrWhiteSpace(extOrderId))
                 {
@@ -186,80 +196,40 @@ namespace GamblingBuddies.Controllers
 
                 var payment = await _context.Payments
                     .FirstOrDefaultAsync(p =>
-                        p.PaymentProviderOrderId == orderId ||
-                        p.ExternalOrderId == extOrderId);
+                        (!string.IsNullOrWhiteSpace(orderId) && p.PaymentProviderOrderId == orderId) ||
+                        (!string.IsNullOrWhiteSpace(extOrderId) && p.ExternalOrderId == extOrderId));
 
                 if (payment == null)
                 {
-                    Console.WriteLine("NIE ZNALEZIONO PAYMENT PO orderId/extOrderId");
-
-                    payment = await _context.Payments
-                        .OrderByDescending(p => p.CreatedAt)
-                        .FirstOrDefaultAsync(p => p.PaymentStatus.Name == "Pending");
-
-                    if (payment == null)
-                    {
-                        Console.WriteLine("NIE ZNALEZIONO ŻADNEJ PENDING PŁATNOŚCI");
-                        return Ok();
-                    }
-
-                    Console.WriteLine("UŻYWAM AWARYJNIE OSTATNIEJ PENDING PAYMENT ID: " + payment.PaymentId);
+                    return BadRequest("Nie znaleziono płatności dla orderId/extOrderId z PayU.");
                 }
 
                 _context.PaymentTransactions.Add(new PaymentTransaction
                 {
                     PaymentId = payment.PaymentId,
                     ExternalTransactionId = orderId ?? extOrderId ?? "BRAK_ORDER_ID",
-                    ProviderResponseCode = status ?? "BRAK_STATUSU",
+                    ProviderResponseCode = status,
                     ProviderResponseMessage = body,
                     CreatedAt = DateTime.Now
                 });
 
-                var payuStatus = status?.ToUpper();
+                var payuStatus = status.ToUpperInvariant();
 
                 if (payuStatus == "COMPLETED")
                 {
-                    var paidStatus = await _context.PaymentStatuses
-                        .FirstOrDefaultAsync(s => s.Name == "Paid");
-
-                    if (paidStatus != null)
-                    {
-                        payment.PaymentStatusId = paidStatus.PaymentStatusId;
-                        payment.PaidAt = DateTime.Now;
-                        Console.WriteLine("USTAWIONO PAID");
-                    }
+                    await SetPaymentPaidWithoutSave(payment);
                 }
-                else if (
-                    payuStatus == "CANCELED" ||
-                    payuStatus == "REJECTED" ||
-                    payuStatus == "ERROR")
+                else if (payuStatus == "CANCELED" || payuStatus == "REJECTED" || payuStatus == "ERROR")
                 {
-                    var rejectedStatus = await _context.PaymentStatuses
-                        .FirstOrDefaultAsync(s => s.Name == "Rejected");
-
-                    if (rejectedStatus != null)
-                    {
-                        payment.PaymentStatusId = rejectedStatus.PaymentStatusId;
-                        payment.PaidAt = null;
-                        Console.WriteLine("USTAWIONO REJECTED");
-                    }
-                    else
-                    {
-                        Console.WriteLine("BRAK STATUSU REJECTED W BAZIE");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("STATUS NIE ZMIENIA PŁATNOŚCI: " + payuStatus);
+                    await SetPaymentRejectedWithoutSave(payment);
                 }
 
                 await _context.SaveChangesAsync();
-
-                Console.WriteLine("ZAPISANO ZMIANY W BAZIE");
                 return Ok();
             }
         }
 
+        [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]
         public async Task<IActionResult> Confirm(int reservationId)
         {
@@ -270,6 +240,7 @@ namespace GamblingBuddies.Controllers
             }
 
             var payment = await _context.Payments
+                .Include(p => p.Reservation)
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
             if (payment == null)
@@ -284,16 +255,78 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction("Go", "Reservation");
             }
 
-            if (payment.Reservation == null)
-            {
-                TempData["Error"] = "Płatność nie jest przypisana do rezerwacji.";
-                return RedirectToAction("Go", "Reservation");
-            }
-
             await SetPaymentPaid(payment, "MANUAL_CONFIRM", "Płatność została ręcznie potwierdzona w systemie.");
 
             TempData["Success"] = "Płatność została potwierdzona.";
             return RedirectToAction("Go", "Reservation");
+        }
+
+        private bool IsValidPayUSignature(string body)
+        {
+            var secondKey = _configuration["PayU:SecondKey"];
+
+            if (string.IsNullOrWhiteSpace(secondKey))
+            {
+                return false;
+            }
+
+            var signatureHeader = Request.Headers["OpenPayu-Signature"].FirstOrDefault()
+                                  ?? Request.Headers["OpenPayU-Signature"].FirstOrDefault()
+                                  ?? Request.Headers["X-OpenPayU-Signature"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(signatureHeader))
+            {
+                return false;
+            }
+
+            var headerValues = ParsePayUSignatureHeader(signatureHeader);
+
+            if (!headerValues.TryGetValue("signature", out var incomingSignature) ||
+                string.IsNullOrWhiteSpace(incomingSignature))
+            {
+                return false;
+            }
+
+            if (headerValues.TryGetValue("algorithm", out var algorithm) &&
+                !string.Equals(algorithm, "MD5", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var expectedSignature = CalculateMd5(body + secondKey);
+
+            return string.Equals(
+                expectedSignature,
+                incomingSignature,
+                StringComparison.OrdinalIgnoreCase
+            );
+        }
+
+        private static Dictionary<string, string> ParsePayUSignatureHeader(string header)
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var parts = header.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            foreach (var part in parts)
+            {
+                var keyValue = part.Split('=', 2, StringSplitOptions.TrimEntries);
+
+                if (keyValue.Length == 2)
+                {
+                    result[keyValue[0]] = keyValue[1];
+                }
+            }
+
+            return result;
+        }
+
+        private static string CalculateMd5(string value)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            var hashBytes = MD5.HashData(bytes);
+
+            return Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
 
         private async Task SetPaymentPaid(
@@ -343,11 +376,13 @@ namespace GamblingBuddies.Controllers
             var paidStatus = await _context.PaymentStatuses
                 .FirstOrDefaultAsync(s => s.Name == "Paid");
 
-            if (paidStatus != null)
+            if (paidStatus == null)
             {
-                payment.PaymentStatusId = paidStatus.PaymentStatusId;
-                payment.PaidAt = DateTime.Now;
+                throw new InvalidOperationException("Brak statusu płatności Paid w bazie.");
             }
+
+            payment.PaymentStatusId = paidStatus.PaymentStatusId;
+            payment.PaidAt = DateTime.Now;
         }
 
         private async Task SetPaymentRejectedWithoutSave(Payment payment)
@@ -355,11 +390,13 @@ namespace GamblingBuddies.Controllers
             var rejectedStatus = await _context.PaymentStatuses
                 .FirstOrDefaultAsync(s => s.Name == "Rejected");
 
-            if (rejectedStatus != null)
+            if (rejectedStatus == null)
             {
-                payment.PaymentStatusId = rejectedStatus.PaymentStatusId;
-                payment.PaidAt = null;
+                throw new InvalidOperationException("Brak statusu płatności Rejected w bazie.");
             }
+
+            payment.PaymentStatusId = rejectedStatus.PaymentStatusId;
+            payment.PaidAt = null;
         }
     }
 }

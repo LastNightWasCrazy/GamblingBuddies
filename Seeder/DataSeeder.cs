@@ -1428,13 +1428,36 @@ namespace GamblingBuddies
         }
 
         private static SystemUser GetOrCreateUser(
-            AppDbContext context,
-            string login,
-            string email,
-            string passwordHash)
+        AppDbContext context,
+        string login,
+        string email,
+        string passwordHash)
         {
             var user = context.Set<SystemUser>().FirstOrDefault(u => u.Login == login);
-            if (user != null) return user;
+
+            if (user != null)
+            {
+                bool changed = false;
+
+                if (!user.IsActive)
+                {
+                    user.IsActive = true;
+                    changed = true;
+                }
+
+                if (!user.IsApproved)
+                {
+                    user.IsApproved = true;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    context.SaveChanges();
+                }
+
+                return user;
+            }
 
             user = new SystemUser
             {
@@ -1442,6 +1465,7 @@ namespace GamblingBuddies
                 Email = email,
                 PasswordHash = passwordHash,
                 IsActive = true,
+                IsApproved = true,
                 CreatedAt = DateTime.Now
             };
 
@@ -1450,7 +1474,6 @@ namespace GamblingBuddies
 
             return user;
         }
-
         private static void AddUserRoleIfMissing(
             AppDbContext context,
             SystemUser user,
