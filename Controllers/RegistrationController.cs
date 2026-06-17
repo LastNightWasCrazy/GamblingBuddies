@@ -27,16 +27,37 @@ namespace GamblingBuddies.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegistrationRequest model)
         {
+            // Logowanie do konsoli
+            System.Diagnostics.Debug.WriteLine("=== REJESTRACJA ===");
+            System.Diagnostics.Debug.WriteLine($"Imię: {model.FirstName}");
+            System.Diagnostics.Debug.WriteLine($"Nazwisko: {model.LastName}");
+            System.Diagnostics.Debug.WriteLine($"Telefon: {model.Phone}");
+            System.Diagnostics.Debug.WriteLine($"Login: {model.Login}");
+            System.Diagnostics.Debug.WriteLine($"Hasło: {model.PasswordHash}");
+            System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
             if (!ModelState.IsValid)
             {
+                System.Diagnostics.Debug.WriteLine("=== BŁĘDY WALIDACJI ===");
+                foreach (var key in ModelState.Keys)
+                {
+                    var errors = ModelState[key].Errors;
+                    foreach (var error in errors)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Pole: {key}, Błąd: {error.ErrorMessage}");
+                    }
+                }
                 return View(model);
             }
+
+            System.Diagnostics.Debug.WriteLine("=== WALIDACJA OK ===");
 
             var existingUser = await _context.SystemUsers
                 .FirstOrDefaultAsync(u => u.Login == model.Login);
 
             if (existingUser != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Użytkownik {model.Login} już istnieje");
                 ModelState.AddModelError("Login", "Użytkownik o tym loginie już istnieje.");
                 return View(model);
             }
@@ -46,6 +67,7 @@ namespace GamblingBuddies.Controllers
 
             if (existingRequest != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Zgłoszenie dla {model.Login} już oczekuje");
                 ModelState.AddModelError("Login", "Zgłoszenie dla tego loginu już oczekuje na zatwierdzenie.");
                 return View(model);
             }
@@ -63,6 +85,8 @@ namespace GamblingBuddies.Controllers
 
             _context.RegistrationRequests.Add(request);
             await _context.SaveChangesAsync();
+
+            System.Diagnostics.Debug.WriteLine($"=== ZGŁOSZENIE ZAPISANE ID: {request.RegistrationRequestId} ===");
 
             TempData["Success"] = "Twoje zgłoszenie zostało wysłane. Czekaj na zatwierdzenie przez administratora.";
             return RedirectToAction("Register");
@@ -84,12 +108,27 @@ namespace GamblingBuddies.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int id, string role)
         {
+            System.Diagnostics.Debug.WriteLine($"=== ZATWIERDZANIE ===");
+            System.Diagnostics.Debug.WriteLine($"ID: {id}, Rola: {role}");
+
             var request = await _context.RegistrationRequests
                 .FirstOrDefaultAsync(r => r.RegistrationRequestId == id);
 
-            if (request == null || request.Status != "Pending")
+            if (request == null)
             {
-                TempData["Error"] = "Zgłoszenie nie istnieje lub zostało już przetworzone.";
+                TempData["Error"] = "Zgłoszenie nie istnieje.";
+                return RedirectToAction(nameof(PendingRequests));
+            }
+
+            if (request.Status != "Pending")
+            {
+                TempData["Error"] = "Zgłoszenie zostało już przetworzone.";
+                return RedirectToAction(nameof(PendingRequests));
+            }
+
+            if (string.IsNullOrEmpty(role))
+            {
+                TempData["Error"] = "Wybierz rolę dla użytkownika.";
                 return RedirectToAction(nameof(PendingRequests));
             }
 
@@ -110,35 +149,65 @@ namespace GamblingBuddies.Controllers
                 return RedirectToAction(nameof(PendingRequests));
             }
 
-            var user = new SystemUser
+            var existingUser = await _context.SystemUsers
+                .FirstOrDefaultAsync(u => u.Login == request.Login);
+
+            if (existingUser != null)
             {
-                Login = request.Login,
-                Email = $"{request.Login}@gamblingbuddies.local",
-                PasswordHash = request.PasswordHash,
-                IsActive = true,
-                CreatedAt = DateTime.Now
-            };
+                TempData["Error"] = $"Użytkownik o loginie {request.Login} już istnieje.";
+                return RedirectToAction(nameof(PendingRequests));
+            }
 
-            _context.SystemUsers.Add(user);
-            await _context.SaveChangesAsync();
-
-            var userRole = new UserRole
+            try
             {
-                SystemUserId = user.SystemUserId,
-                RoleDictionaryId = roleDict.RoleDictionaryId
-            };
+                var newUser = new SystemUser
+                {
+                    Login = request.Login,
+                    Email = $"{request.Login}@gamblingbuddies.local",
+                    PasswordHash = request.PasswordHash,
+                    IsActive = true,
+                    IsApproved = true,
+                    CreatedAt = DateTime.Now
+                };
 
-            _context.UserRoles.Add(userRole);
+                _context.SystemUsers.Add(newUser);
+                await _context.SaveChangesAsync();
+                System.Diagnostics.Debug.WriteLine($"Utworzono użytkownika ID: {newUser.SystemUserId}");
 
-            request.Status = "Approved";
-            request.ProcessedAt = DateTime.Now;
-            request.ProcessedByUserId = adminUserId;
+                var savedUser = await _context.SystemUsers.FindAsync(newUser.SystemUserId);
+                if (savedUser != null && !savedUser.IsActive)
+                {
+                    savedUser.IsActive = true;
+                    await _context.SaveChangesAsync();
+                    System.Diagnostics.Debug.WriteLine($"Zaktualizowano IsActive na true dla użytkownika {savedUser.Login}");
+                }
 
-            await _context.SaveChangesAsync();
+                var userRole = new UserRole
+                {
+                    SystemUserId = newUser.SystemUserId,
+                    RoleDictionaryId = roleDict.RoleDictionaryId
+                };
 
-            TempData["Success"] = $"Użytkownik {request.FirstName} {request.LastName} został zatwierdzony jako {role}.";
+                _context.UserRoles.Add(userRole);
+
+                request.Status = "Approved";
+                request.ProcessedAt = DateTime.Now;
+                request.ProcessedByUserId = adminUserId;
+
+                await _context.SaveChangesAsync();
+                System.Diagnostics.Debug.WriteLine($"Zgłoszenie zatwierdzone!");
+
+                TempData["Success"] = $"Użytkownik {request.FirstName} {request.LastName} został zatwierdzony jako {role}.";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"BŁĄD: {ex.Message}");
+                TempData["Error"] = $"Błąd podczas zatwierdzania: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(PendingRequests));
         }
+
 
         [Authorize(Roles = "Administrator")]
         [HttpPost]

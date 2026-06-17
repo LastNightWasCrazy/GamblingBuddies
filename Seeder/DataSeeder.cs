@@ -8,6 +8,7 @@ namespace GamblingBuddies
     {
         private static void SeedLargeRandomData(AppDbContext context)
         {
+            Randomizer.Seed = new Random(123);
             var faker = new Bogus.Faker("pl");
 
             if (context.Players.Count() < 200)
@@ -23,7 +24,7 @@ namespace GamblingBuddies
                         LastName = faker.Name.LastName(),
                         Email = faker.Internet.Email(),
                         Phone = faker.Phone.PhoneNumber("#########"),
-                        CreatedAt = faker.Date.Past(1)
+                        CreatedAt = DateTime.Now.AddMinutes(-(context.Players.Count() + i + 1))
                     });
                 }
 
@@ -33,9 +34,17 @@ namespace GamblingBuddies
 
             if (context.Reservations.Count() < 500)
             {
-                var players = context.Players.ToList();
-                var sessions = context.GameSessions.ToList();
-                var statuses = context.ReservationStatusDictionaries.ToList();
+                var players = context.Players
+                    .OrderBy(p => p.PlayerId)
+                    .ToList();
+
+                var sessions = context.GameSessions
+                    .OrderBy(s => s.GameSessionId)
+                    .ToList();
+
+                var statuses = context.ReservationStatusDictionaries
+                    .OrderBy(s => s.ReservationStatusId)
+                    .ToList();
 
                 if (players.Any() && sessions.Any() && statuses.Any())
                 {
@@ -44,16 +53,18 @@ namespace GamblingBuddies
 
                     for (int i = 0; i < reservationsToCreate; i++)
                     {
-                        var player = players[faker.Random.Int(0, players.Count - 1)];
-                        var session = sessions[faker.Random.Int(0, sessions.Count - 1)];
-                        var status = statuses[faker.Random.Int(0, statuses.Count - 1)];
+                        var player = players[i % players.Count];
+                        var session = sessions[i % sessions.Count];
+                        var status = statuses[i % statuses.Count];
 
                         reservations.Add(new Reservation
                         {
                             PlayerId = player.PlayerId,
                             GameSessionId = session.GameSessionId,
                             ReservationStatusId = status.ReservationStatusId,
-                            ReservedAt = faker.Date.Recent(60)
+                            // Daty ustawione malejąco, żeby przy OrderByDescending(ReservedAt)
+                            // widok pokazywał rekordy według ID: 1, 2, 3, 4...
+                            ReservedAt = DateTime.Now.AddMinutes(-(context.Reservations.Count() + i + 1))
                         });
                     }
 
@@ -64,9 +75,17 @@ namespace GamblingBuddies
 
             if (context.Payments.Count() < 300)
             {
-                var reservations = context.Reservations.ToList();
-                var paymentMethods = context.PaymentMethods.ToList();
-                var paymentStatuses = context.PaymentStatuses.ToList();
+                var reservations = context.Reservations
+                    .OrderBy(r => r.ReservationId)
+                    .ToList();
+
+                var paymentMethods = context.PaymentMethods
+                    .OrderBy(pm => pm.PaymentMethodId)
+                    .ToList();
+
+                var paymentStatuses = context.PaymentStatuses
+                    .OrderBy(ps => ps.PaymentStatusId)
+                    .ToList();
 
                 if (reservations.Any() && paymentMethods.Any() && paymentStatuses.Any())
                 {
@@ -75,18 +94,22 @@ namespace GamblingBuddies
 
                     for (int i = 0; i < paymentsToCreate; i++)
                     {
-                        var reservation = reservations[faker.Random.Int(0, reservations.Count - 1)];
+                        var reservation = reservations[i % reservations.Count];
 
                         payments.Add(new Payment
                         {
                             ReservationId = reservation.ReservationId,
-                            PaymentMethodId = paymentMethods[faker.Random.Int(0, paymentMethods.Count - 1)].PaymentMethodId,
-                            PaymentStatusId = paymentStatuses[faker.Random.Int(0, paymentStatuses.Count - 1)].PaymentStatusId,
-                            Amount = faker.Random.Decimal(50, 1000),
-                            CreatedAt = faker.Date.Recent(60),
-                            PaidAt = faker.Random.Bool(0.45f) ? faker.Date.Recent(30) : null,
-                            ExternalOrderId = $"TEST-{Guid.NewGuid()}",
-                            PaymentProviderOrderId = faker.Random.Bool(0.6f) ? $"PROV-{Guid.NewGuid()}" : null,
+                            PaymentMethodId = paymentMethods[i % paymentMethods.Count].PaymentMethodId,
+                            PaymentStatusId = paymentStatuses[i % paymentStatuses.Count].PaymentStatusId,
+                            Amount = 50m + (i % 20) * 25m,
+                            // Daty ustawione malejąco, żeby przy OrderByDescending(CreatedAt)
+                            // widok płatności pokazywał ID po kolei.
+                            CreatedAt = DateTime.Now.AddMinutes(-(context.Payments.Count() + i + 1)),
+                            PaidAt = paymentStatuses[i % paymentStatuses.Count].Name == "Paid"
+                                ? DateTime.Now.AddMinutes(-(context.Payments.Count() + i + 1)).AddSeconds(30)
+                                : null,
+                            ExternalOrderId = $"TEST-{context.Payments.Count() + i + 1:D4}",
+                            PaymentProviderOrderId = $"PROV-{context.Payments.Count() + i + 1:D4}",
                             PaymentProvider = "Seed"
                         });
                     }
@@ -98,8 +121,13 @@ namespace GamblingBuddies
 
             if (context.Employees.Count() < 80)
             {
-                var employeePositions = context.EmployeePositionDictionaries.ToList();
-                var employeeStatuses = context.EmployeeStatusDictionaries.ToList();
+                var employeePositions = context.EmployeePositionDictionaries
+                    .OrderBy(ep => ep.EmployeePositionDictionaryId)
+                    .ToList();
+
+                var employeeStatuses = context.EmployeeStatusDictionaries
+                    .OrderBy(es => es.EmployeeStatusDictionaryId)
+                    .ToList();
 
                 if (employeePositions.Any() && employeeStatuses.Any())
                 {
@@ -115,8 +143,8 @@ namespace GamblingBuddies
                             LastName = faker.Name.LastName(),
                             Phone = faker.Phone.PhoneNumber("#########"),
                             HireDate = faker.Date.Past(3),
-                            PositionId = employeePositions[faker.Random.Int(0, employeePositions.Count - 1)].EmployeePositionDictionaryId,
-                            EmployeeStatusId = employeeStatuses[faker.Random.Int(0, employeeStatuses.Count - 1)].EmployeeStatusDictionaryId
+                            PositionId = employeePositions[i % employeePositions.Count].EmployeePositionDictionaryId,
+                            EmployeeStatusId = employeeStatuses[i % employeeStatuses.Count].EmployeeStatusDictionaryId
                         });
                     }
 
@@ -127,8 +155,13 @@ namespace GamblingBuddies
 
             if (context.WorkShifts.Count() < 300)
             {
-                var employees = context.Employees.ToList();
-                var users = context.SystemUsers.ToList();
+                var employees = context.Employees
+                    .OrderBy(e => e.EmployeeId)
+                    .ToList();
+
+                var users = context.SystemUsers
+                    .OrderBy(u => u.SystemUserId)
+                    .ToList();
 
                 if (employees.Any() && users.Any())
                 {
@@ -137,14 +170,14 @@ namespace GamblingBuddies
 
                     for (int i = 0; i < shiftsToCreate; i++)
                     {
-                        var start = faker.Date.Between(DateTime.Now.AddDays(-30), DateTime.Now.AddDays(30));
+                        var start = DateTime.Now.Date.AddDays(i % 30).AddHours(8);
 
                         shifts.Add(new WorkShift
                         {
-                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
+                            EmployeeId = employees[i % employees.Count].EmployeeId,
                             StartAt = start,
-                            EndAt = start.AddHours(faker.Random.Int(6, 10)),
-                            CreatedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId
+                            EndAt = start.AddHours(8),
+                            CreatedByUserId = users[i % users.Count].SystemUserId
                         });
                     }
 
@@ -155,9 +188,17 @@ namespace GamblingBuddies
 
             if (context.EmployeeAssignments.Count() < 200)
             {
-                var employees = context.Employees.ToList();
-                var sessions = context.GameSessions.ToList();
-                var users = context.SystemUsers.ToList();
+                var employees = context.Employees
+                    .OrderBy(e => e.EmployeeId)
+                    .ToList();
+
+                var sessions = context.GameSessions
+                    .OrderBy(s => s.GameSessionId)
+                    .ToList();
+
+                var users = context.SystemUsers
+                    .OrderBy(u => u.SystemUserId)
+                    .ToList();
 
                 if (employees.Any() && sessions.Any() && users.Any())
                 {
@@ -168,9 +209,9 @@ namespace GamblingBuddies
                     {
                         assignments.Add(new EmployeeAssignment
                         {
-                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
-                            GameSessionId = sessions[faker.Random.Int(0, sessions.Count - 1)].GameSessionId,
-                            AssignedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId,
+                            EmployeeId = employees[i % employees.Count].EmployeeId,
+                            GameSessionId = sessions[i % sessions.Count].GameSessionId,
+                            AssignedByUserId = users[i % users.Count].SystemUserId,
                             Notes = faker.Lorem.Sentence(6)
                         });
                     }
@@ -752,7 +793,22 @@ namespace GamblingBuddies
                 ReservedAt = now.AddHours(-3)
             };
 
-            context.Set<Reservation>().AddRange(reservation1, reservation2, reservation3, reservation4);
+            var initialReservations = new List<Reservation>
+            {
+                reservation1,
+                reservation2,
+                reservation3,
+                reservation4
+            };
+
+            for (int i = 0; i < initialReservations.Count; i++)
+            {
+                // Dzięki temu aktualny widok sortowany po ReservedAt malejąco
+                // pokaże rezerwacje po ID: 1, 2, 3, 4...
+                initialReservations[i].ReservedAt = now.AddMinutes(-(i + 1));
+            }
+
+            context.Set<Reservation>().AddRange(initialReservations);
             context.SaveChanges();
 
             var table1Id = table1.GameTableId;
@@ -1053,6 +1109,19 @@ namespace GamblingBuddies
                     PaymentProvider = "PayU"
                 }
             };
+
+            for (int i = 0; i < payments.Count; i++)
+            {
+                // Dzięki temu aktualny widok sortowany po CreatedAt malejąco
+                // pokaże płatności po ID: 1, 2, 3, 4...
+                var createdAt = now.AddMinutes(-(i + 1));
+                payments[i].CreatedAt = createdAt;
+
+                if (payments[i].PaidAt != null)
+                {
+                    payments[i].PaidAt = createdAt.AddSeconds(30);
+                }
+            }
 
             context.Set<Payment>().AddRange(payments);
             context.SaveChanges();

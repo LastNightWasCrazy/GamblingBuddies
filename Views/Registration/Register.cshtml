@@ -15,7 +15,7 @@
                 <div class="card-body p-4">
                     @if (TempData["Success"] != null)
                     {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successMessage">
                             @TempData["Success"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -29,7 +29,7 @@
                         </div>
                     }
 
-                    <form asp-action="Register" method="post">
+                    <form asp-action="Register" method="post" id="registerForm">
                         @Html.AntiForgeryToken()
 
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -54,14 +54,21 @@
 
                         <div class="mb-3">
                             <label asp-for="Login" class="form-label fw-bold">Login</label>
-                            <input asp-for="Login" class="form-control" placeholder="Wybierz login" />
-                            <span asp-validation-for="Login" class="text-danger"></span>
+                            <input asp-for="Login" class="form-control" placeholder="Wybierz login (tylko małe litery)" id="loginInput" />
+                            <span asp-validation-for="Login" class="text-danger" id="loginError"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="PasswordHash" class="form-label fw-bold">Hasło</label>
-                            <input asp-for="PasswordHash" type="password" class="form-control" placeholder="Wybierz hasło" />
-                            <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                            <input asp-for="PasswordHash" type="password" class="form-control" placeholder="Wybierz hasło (min. 6 znaków)" id="passwordInput" />
+                            <span asp-validation-for="PasswordHash" class="text-danger" id="passwordError"></span>
+                            <small class="text-muted">Hasło musi mieć co najmniej 6 znaków.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Potwierdź hasło</label>
+                            <input type="password" class="form-control" placeholder="Powtórz hasło" id="confirmPassword" />
+                            <span class="text-danger" id="confirmPasswordError"></span>
                         </div>
 
                         <button type="submit" class="btn btn-danger w-100 py-2" style="background-color: #8b0000; border: none;">
@@ -78,5 +85,58 @@
 </div>
 
 @section Scripts {
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            var login = document.getElementById('loginInput');
+            var loginError = document.getElementById('loginError');
+            var password = document.getElementById('passwordInput');
+            var passwordError = document.getElementById('passwordError');
+            var confirmPassword = document.getElementById('confirmPassword');
+            var confirmError = document.getElementById('confirmPasswordError');
+            var isValid = true;
+
+            loginError.textContent = '';
+            passwordError.textContent = '';
+            confirmError.textContent = '';
+
+            var loginRegex = /^[a-z]+$/;
+            if (login.value && !loginRegex.test(login.value)) {
+                loginError.textContent = 'Login może zawierać tylko małe litery (a-z).';
+                isValid = false;
+            }
+
+            if (password.value && password.value.length < 6) {
+                passwordError.textContent = 'Hasło musi mieć co najmniej 6 znaków.';
+                isValid = false;
+            }
+
+            if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+                confirmError.textContent = 'Hasła nie są identyczne.';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        document.getElementById('loginInput').addEventListener('input', function() {
+            this.value = this.value.toLowerCase();
+        });
+
+        // Jeśli jest komunikat sukcesu, wyczyść formularz po 3 sekundach
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                    setTimeout(function() {
+                        document.getElementById('registerForm').reset();
+                        var successMessage = document.getElementById('successMessage');
+                        if (successMessage) {
+                            successMessage.style.display = 'none';
+                        }
+                    }, 3000);
+                </text>
+        }
+    </script>
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

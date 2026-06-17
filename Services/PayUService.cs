@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace GamblingBuddies.Services.PayU
 {
-    public class PayUService
+    public class PayUService : IPayUService
     {
         private readonly HttpClient _httpClient;
         private readonly PayUOptions _options;
@@ -20,6 +20,13 @@ namespace GamblingBuddies.Services.PayU
 
         private async Task<string> GetAccessTokenAsync()
         {
+            if (string.IsNullOrWhiteSpace(_options.BaseUrl) ||
+                string.IsNullOrWhiteSpace(_options.ClientId) ||
+                string.IsNullOrWhiteSpace(_options.ClientSecret))
+            {
+                throw new InvalidOperationException("Brak konfiguracji PayU: BaseUrl, ClientId albo ClientSecret.");
+            }
+
             var url = $"{_options.BaseUrl}/pl/standard/user/oauth/authorize";
 
             var body = new FormUrlEncodedContent(new[]
@@ -80,9 +87,14 @@ namespace GamblingBuddies.Services.PayU
                 customerIp = "127.0.0.1";
             }
 
+            if (string.IsNullOrWhiteSpace(_options.MerchantPosId))
+            {
+                throw new InvalidOperationException("Brak konfiguracji PayU: MerchantPosId.");
+            }
+
             var token = await GetAccessTokenAsync();
 
-            var amountInGrosze = (int)(payment.Amount * 100);
+            var amountInGrosze = (int)Math.Round(payment.Amount * 100m, MidpointRounding.AwayFromZero);
 
             var extOrderId = $"RES-{payment.ReservationId}-PAY-{payment.PaymentId}-{Guid.NewGuid()}";
 
