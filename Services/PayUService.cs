@@ -50,6 +50,36 @@ namespace GamblingBuddies.Services.PayU
             string notifyUrl,
             string customerIp)
         {
+            if (payment == null)
+            {
+                throw new ArgumentNullException(nameof(payment));
+            }
+
+            if (payment.PaymentId <= 0 || payment.ReservationId <= 0)
+            {
+                throw new ArgumentException("Płatność musi być zapisana w bazie przed wysłaniem do PayU.");
+            }
+
+            if (payment.Amount <= 0)
+            {
+                throw new ArgumentException("Kwota płatności musi być większa od zera.");
+            }
+
+            if (string.IsNullOrWhiteSpace(continueUrl))
+            {
+                throw new ArgumentException("Brak continueUrl dla PayU.");
+            }
+
+            if (string.IsNullOrWhiteSpace(notifyUrl))
+            {
+                throw new ArgumentException("Brak notifyUrl dla PayU.");
+            }
+
+            if (string.IsNullOrWhiteSpace(customerIp))
+            {
+                customerIp = "127.0.0.1";
+            }
+
             var token = await GetAccessTokenAsync();
 
             var amountInGrosze = (int)(payment.Amount * 100);

@@ -422,3 +422,9 @@ FodyWeavers.xsd
 /obj/Debug/net8.0/GamblingBuddies.AssemblyInfo.cs
 /obj/Debug/net9.0/GamblingBuddies.AssemblyInfoInputs.cache
 /obj/Debug/net9.0/GamblingBuddies.GeneratedMSBuildEditorConfig.editorconfig
+
+bin/
+obj/
+.vs/
+*.user
+*.suo

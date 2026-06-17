@@ -17,15 +17,34 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
-            var employees = _context.Set<Employee>()
+            const int pageSize = 30;
+            if (page < 1)
+                page = 1;
+
+            var query = _context.Set<Employee>()
                 .Include(e => e.SystemUser)
                 .Include(e => e.Position)
                 .Include(e => e.Status)
                 .OrderBy(e => e.LastName)
-                .ThenBy(e => e.FirstName)
+                .ThenBy(e => e.FirstName);
+
+            var totalItems = query.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (totalPages > 0 && page > totalPages)
+                page = totalPages;
+
+            var employees = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             return View(employees);
         }

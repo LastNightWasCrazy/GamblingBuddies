@@ -15,16 +15,27 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var payments = await _context.Payments
+            int pageSize = 30;
+
+            var query = _context.Payments
                 .Include(p => p.Reservation)
                     .ThenInclude(r => r.Player)
                 .Include(p => p.PaymentMethod)
                 .Include(p => p.PaymentStatus)
                 .Include(p => p.PaymentTransactions)
-                .OrderByDescending(p => p.CreatedAt)
+                .OrderByDescending(p => p.CreatedAt);
+
+            int totalItems = await query.CountAsync();
+
+            var payments = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             return View(payments);
         }

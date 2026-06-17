@@ -18,8 +18,13 @@ namespace GamblingBuddies.Controllers
             _context = context;
         }
 
-        public IActionResult WorkShifts(bool onlyMine = false, bool showInactive = false)
+        public IActionResult WorkShifts(bool onlyMine = false, bool showInactive = false, int page = 1)
         {
+            const int pageSize = 30;
+
+            if (page < 1)
+                page = 1;
+
             var isAdminOrManager = User.IsInRole("Administrator") || User.IsInRole("Manager");
 
             if (!isAdminOrManager)
@@ -51,19 +56,37 @@ namespace GamblingBuddies.Controllers
                 query = query.Where(ws => ws.Employee != null && ws.Employee.SystemUserId == currentUserId.Value);
             }
 
+            var totalItems = query.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (totalPages > 0 && page > totalPages)
+                page = totalPages;
+
             var workShifts = query
                 .OrderBy(ws => ws.StartAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
             ViewBag.OnlyMine = onlyMine;
             ViewBag.ShowInactive = showInactive;
             ViewBag.IsAdminOrManager = isAdminOrManager;
 
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+
             return View(workShifts);
         }
 
-        public IActionResult Assignments(bool onlyMine = false, bool showInactive = false)
+        public IActionResult Assignments(bool onlyMine = false, bool showInactive = false, int page = 1)
         {
+            const int pageSize = 30;
+
+            if (page < 1)
+                page = 1;
+
             var isAdminOrManager = User.IsInRole("Administrator") || User.IsInRole("Manager");
 
             if (!isAdminOrManager)
@@ -101,13 +124,26 @@ namespace GamblingBuddies.Controllers
                 query = query.Where(a => a.Employee != null && a.Employee.SystemUserId == currentUserId.Value);
             }
 
+            var totalItems = query.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (totalPages > 0 && page > totalPages)
+                page = totalPages;
+
             var assignments = query
                 .OrderBy(a => a.GameSession.StartAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
             ViewBag.OnlyMine = onlyMine;
             ViewBag.ShowInactive = showInactive;
             ViewBag.IsAdminOrManager = isAdminOrManager;
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             return View(assignments);
         }

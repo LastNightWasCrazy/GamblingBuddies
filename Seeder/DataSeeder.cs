@@ -1,21 +1,197 @@
 ﻿using GamblingBuddies.Models;
+using Bogus;
+
 
 namespace GamblingBuddies
 {
     public static class DataSeeder
     {
+        private static void SeedLargeRandomData(AppDbContext context)
+        {
+            var faker = new Bogus.Faker("pl");
+
+            if (context.Players.Count() < 200)
+            {
+                var playersToCreate = 200 - context.Players.Count();
+                var players = new List<Player>();
+
+                for (int i = 0; i < playersToCreate; i++)
+                {
+                    players.Add(new Player
+                    {
+                        FirstName = faker.Name.FirstName(),
+                        LastName = faker.Name.LastName(),
+                        Email = faker.Internet.Email(),
+                        Phone = faker.Phone.PhoneNumber("#########"),
+                        CreatedAt = faker.Date.Past(1)
+                    });
+                }
+
+                context.Players.AddRange(players);
+                context.SaveChanges();
+            }
+
+            if (context.Reservations.Count() < 500)
+            {
+                var players = context.Players.ToList();
+                var sessions = context.GameSessions.ToList();
+                var statuses = context.ReservationStatusDictionaries.ToList();
+
+                if (players.Any() && sessions.Any() && statuses.Any())
+                {
+                    var reservationsToCreate = 500 - context.Reservations.Count();
+                    var reservations = new List<Reservation>();
+
+                    for (int i = 0; i < reservationsToCreate; i++)
+                    {
+                        var player = players[faker.Random.Int(0, players.Count - 1)];
+                        var session = sessions[faker.Random.Int(0, sessions.Count - 1)];
+                        var status = statuses[faker.Random.Int(0, statuses.Count - 1)];
+
+                        reservations.Add(new Reservation
+                        {
+                            PlayerId = player.PlayerId,
+                            GameSessionId = session.GameSessionId,
+                            ReservationStatusId = status.ReservationStatusId,
+                            ReservedAt = faker.Date.Recent(60)
+                        });
+                    }
+
+                    context.Reservations.AddRange(reservations);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.Payments.Count() < 300)
+            {
+                var reservations = context.Reservations.ToList();
+                var paymentMethods = context.PaymentMethods.ToList();
+                var paymentStatuses = context.PaymentStatuses.ToList();
+
+                if (reservations.Any() && paymentMethods.Any() && paymentStatuses.Any())
+                {
+                    var paymentsToCreate = 300 - context.Payments.Count();
+                    var payments = new List<Payment>();
+
+                    for (int i = 0; i < paymentsToCreate; i++)
+                    {
+                        var reservation = reservations[faker.Random.Int(0, reservations.Count - 1)];
+
+                        payments.Add(new Payment
+                        {
+                            ReservationId = reservation.ReservationId,
+                            PaymentMethodId = paymentMethods[faker.Random.Int(0, paymentMethods.Count - 1)].PaymentMethodId,
+                            PaymentStatusId = paymentStatuses[faker.Random.Int(0, paymentStatuses.Count - 1)].PaymentStatusId,
+                            Amount = faker.Random.Decimal(50, 1000),
+                            CreatedAt = faker.Date.Recent(60),
+                            PaidAt = faker.Random.Bool(0.45f) ? faker.Date.Recent(30) : null,
+                            ExternalOrderId = $"TEST-{Guid.NewGuid()}",
+                            PaymentProviderOrderId = faker.Random.Bool(0.6f) ? $"PROV-{Guid.NewGuid()}" : null,
+                            PaymentProvider = "Seed"
+                        });
+                    }
+
+                    context.Payments.AddRange(payments);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.Employees.Count() < 80)
+            {
+                var employeePositions = context.EmployeePositionDictionaries.ToList();
+                var employeeStatuses = context.EmployeeStatusDictionaries.ToList();
+
+                if (employeePositions.Any() && employeeStatuses.Any())
+                {
+                    var employeesToCreate = 80 - context.Employees.Count();
+                    var employees = new List<Employee>();
+
+                    for (int i = 0; i < employeesToCreate; i++)
+                    {
+                        employees.Add(new Employee
+                        {
+                            SystemUserId = null,
+                            FirstName = faker.Name.FirstName(),
+                            LastName = faker.Name.LastName(),
+                            Phone = faker.Phone.PhoneNumber("#########"),
+                            HireDate = faker.Date.Past(3),
+                            PositionId = employeePositions[faker.Random.Int(0, employeePositions.Count - 1)].EmployeePositionDictionaryId,
+                            EmployeeStatusId = employeeStatuses[faker.Random.Int(0, employeeStatuses.Count - 1)].EmployeeStatusDictionaryId
+                        });
+                    }
+
+                    context.Employees.AddRange(employees);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.WorkShifts.Count() < 300)
+            {
+                var employees = context.Employees.ToList();
+                var users = context.SystemUsers.ToList();
+
+                if (employees.Any() && users.Any())
+                {
+                    var shiftsToCreate = 300 - context.WorkShifts.Count();
+                    var shifts = new List<WorkShift>();
+
+                    for (int i = 0; i < shiftsToCreate; i++)
+                    {
+                        var start = faker.Date.Between(DateTime.Now.AddDays(-30), DateTime.Now.AddDays(30));
+
+                        shifts.Add(new WorkShift
+                        {
+                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
+                            StartAt = start,
+                            EndAt = start.AddHours(faker.Random.Int(6, 10)),
+                            CreatedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId
+                        });
+                    }
+
+                    context.WorkShifts.AddRange(shifts);
+                    context.SaveChanges();
+                }
+            }
+
+            if (context.EmployeeAssignments.Count() < 200)
+            {
+                var employees = context.Employees.ToList();
+                var sessions = context.GameSessions.ToList();
+                var users = context.SystemUsers.ToList();
+
+                if (employees.Any() && sessions.Any() && users.Any())
+                {
+                    var assignmentsToCreate = 200 - context.EmployeeAssignments.Count();
+                    var assignments = new List<EmployeeAssignment>();
+
+                    for (int i = 0; i < assignmentsToCreate; i++)
+                    {
+                        assignments.Add(new EmployeeAssignment
+                        {
+                            EmployeeId = employees[faker.Random.Int(0, employees.Count - 1)].EmployeeId,
+                            GameSessionId = sessions[faker.Random.Int(0, sessions.Count - 1)].GameSessionId,
+                            AssignedByUserId = users[faker.Random.Int(0, users.Count - 1)].SystemUserId,
+                            Notes = faker.Lorem.Sentence(6)
+                        });
+                    }
+
+                    context.EmployeeAssignments.AddRange(assignments);
+                    context.SaveChanges();
+                }
+            }
+        }
         public static void Seed(AppDbContext context)
         {
             SeedRolesAndUsers(context);
 
-            if (context.Set<Hall>().Any() ||
-                context.Set<Game>().Any() ||
-                context.Set<GameTable>().Any())
+            if (!context.Set<Hall>().Any() &&
+                !context.Set<Game>().Any() &&
+                !context.Set<GameTable>().Any())
             {
-                return;
+                SeedBusinessData(context);
             }
 
-            SeedBusinessData(context);
+            SeedLargeRandomData(context);
         }
 
         private static void SeedRolesAndUsers(AppDbContext context)
@@ -622,88 +798,440 @@ namespace GamblingBuddies
             context.Set<ReservationSeat>().AddRange(reservationSeats);
             context.SaveChanges();
 
-            var payment1 = new Payment
+            var payments = new List<Payment>
             {
-                ReservationId = reservation1.ReservationId,
-                PaymentMethodId = cardMethod.PaymentMethodId,
-                PaymentStatusId = paidPaymentStatus.PaymentStatusId,
-                Amount = 150m,
-                CreatedAt = now.AddDays(-2),
-                PaidAt = now.AddDays(-2).AddMinutes(5),
-                ExternalOrderId = "EXT-RES-1",
-                PaymentProviderOrderId = "CARD-ORDER-001",
-                PaymentProvider = "Card"
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 150m,
+                    CreatedAt = now.AddDays(-20),
+                    PaidAt = now.AddDays(-20).AddMinutes(5),
+                    ExternalOrderId = "EXT-RES-001",
+                    PaymentProviderOrderId = "CARD-ORDER-001",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation2.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                    Amount = 100m,
+                    CreatedAt = now.AddDays(-19),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-002",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation3.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 200m,
+                    CreatedAt = now.AddDays(-18),
+                    PaidAt = now.AddDays(-18).AddMinutes(7),
+                    ExternalOrderId = "EXT-RES-003",
+                    PaymentProviderOrderId = "PAYU-ORDER-003",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation4.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = rejectedPaymentStatus.PaymentStatusId,
+                    Amount = 120m,
+                    CreatedAt = now.AddDays(-17),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-004",
+                    PaymentProviderOrderId = "PAYU-ORDER-004",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 80m,
+                    CreatedAt = now.AddDays(-16),
+                    PaidAt = now.AddDays(-16).AddMinutes(3),
+                    ExternalOrderId = "EXT-RES-005",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation2.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 250m,
+                    CreatedAt = now.AddDays(-15),
+                    PaidAt = now.AddDays(-15).AddMinutes(10),
+                    ExternalOrderId = "EXT-RES-006",
+                    PaymentProviderOrderId = "CARD-ORDER-006",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation3.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                    Amount = 300m,
+                    CreatedAt = now.AddDays(-14),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-007",
+                    PaymentProviderOrderId = "PAYU-ORDER-007",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation4.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 60m,
+                    CreatedAt = now.AddDays(-13),
+                    PaidAt = now.AddDays(-13).AddMinutes(2),
+                    ExternalOrderId = "EXT-RES-008",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = rejectedPaymentStatus.PaymentStatusId,
+                    Amount = 90m,
+                    CreatedAt = now.AddDays(-12),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-009",
+                    PaymentProviderOrderId = "CARD-ORDER-009",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation2.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 180m,
+                    CreatedAt = now.AddDays(-11),
+                    PaidAt = now.AddDays(-11).AddMinutes(8),
+                    ExternalOrderId = "EXT-RES-010",
+                    PaymentProviderOrderId = "PAYU-ORDER-010",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation3.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                    Amount = 110m,
+                    CreatedAt = now.AddDays(-10),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-011",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation4.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 220m,
+                    CreatedAt = now.AddDays(-9),
+                    PaidAt = now.AddDays(-9).AddMinutes(6),
+                    ExternalOrderId = "EXT-RES-012",
+                    PaymentProviderOrderId = "CARD-ORDER-012",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 140m,
+                    CreatedAt = now.AddDays(-8),
+                    PaidAt = now.AddDays(-8).AddMinutes(4),
+                    ExternalOrderId = "EXT-RES-013",
+                    PaymentProviderOrderId = "PAYU-ORDER-013",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation2.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = rejectedPaymentStatus.PaymentStatusId,
+                    Amount = 70m,
+                    CreatedAt = now.AddDays(-7),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-014",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation3.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 160m,
+                    CreatedAt = now.AddDays(-6),
+                    PaidAt = now.AddDays(-6).AddMinutes(9),
+                    ExternalOrderId = "EXT-RES-015",
+                    PaymentProviderOrderId = "CARD-ORDER-015",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation4.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 210m,
+                    CreatedAt = now.AddDays(-5),
+                    PaidAt = now.AddDays(-5).AddMinutes(11),
+                    ExternalOrderId = "EXT-RES-016",
+                    PaymentProviderOrderId = "PAYU-ORDER-016",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = cashMethod.PaymentMethodId,
+                    PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                    Amount = 95m,
+                    CreatedAt = now.AddDays(-4),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-017",
+                    PaymentProviderOrderId = null,
+                    PaymentProvider = "Cash"
+                },
+                new Payment
+                {
+                    ReservationId = reservation2.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 130m,
+                    CreatedAt = now.AddDays(-3),
+                    PaidAt = now.AddDays(-3).AddMinutes(5),
+                    ExternalOrderId = "EXT-RES-018",
+                    PaymentProviderOrderId = "CARD-ORDER-018",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation3.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = rejectedPaymentStatus.PaymentStatusId,
+                    Amount = 175m,
+                    CreatedAt = now.AddDays(-2),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-019",
+                    PaymentProviderOrderId = "PAYU-ORDER-019",
+                    PaymentProvider = "PayU"
+                },
+                new Payment
+                {
+                    ReservationId = reservation4.ReservationId,
+                    PaymentMethodId = cardMethod.PaymentMethodId,
+                    PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
+                    Amount = 125m,
+                    CreatedAt = now.AddDays(-1),
+                    PaidAt = null,
+                    ExternalOrderId = "EXT-RES-020",
+                    PaymentProviderOrderId = "CARD-ORDER-020",
+                    PaymentProvider = "Card"
+                },
+                new Payment
+                {
+                    ReservationId = reservation1.ReservationId,
+                    PaymentMethodId = payuMethod.PaymentMethodId,
+                    PaymentStatusId = paidPaymentStatus.PaymentStatusId,
+                    Amount = 240m,
+                    CreatedAt = now.AddHours(-8),
+                    PaidAt = now.AddHours(-7).AddMinutes(45),
+                    ExternalOrderId = "EXT-RES-021",
+                    PaymentProviderOrderId = "PAYU-ORDER-021",
+                    PaymentProvider = "PayU"
+                }
             };
 
-            var payment2 = new Payment
-            {
-                ReservationId = reservation2.ReservationId,
-                PaymentMethodId = cashMethod.PaymentMethodId,
-                PaymentStatusId = pendingPaymentStatus.PaymentStatusId,
-                Amount = 150m,
-                CreatedAt = now.AddDays(-1),
-                PaidAt = null,
-                ExternalOrderId = "EXT-RES-2",
-                PaymentProviderOrderId = null,
-                PaymentProvider = "Cash"
-            };
-
-            var payment3 = new Payment
-            {
-                ReservationId = reservation3.ReservationId,
-                PaymentMethodId = payuMethod.PaymentMethodId,
-                PaymentStatusId = paidPaymentStatus.PaymentStatusId,
-                Amount = 150m,
-                CreatedAt = now.AddHours(-8),
-                PaidAt = now.AddHours(-7).AddMinutes(45),
-                ExternalOrderId = "EXT-RES-3",
-                PaymentProviderOrderId = "PAYU-ORDER-003",
-                PaymentProvider = "PayU"
-            };
-
-            var payment4 = new Payment
-            {
-                ReservationId = reservation4.ReservationId,
-                PaymentMethodId = payuMethod.PaymentMethodId,
-                PaymentStatusId = rejectedPaymentStatus.PaymentStatusId,
-                Amount = 200m,
-                CreatedAt = now.AddHours(-3),
-                PaidAt = null,
-                ExternalOrderId = "EXT-RES-4",
-                PaymentProviderOrderId = "PAYU-ORDER-004",
-                PaymentProvider = "PayU"
-            };
-
-            context.Set<Payment>().AddRange(payment1, payment2, payment3, payment4);
+            context.Set<Payment>().AddRange(payments);
             context.SaveChanges();
+
+            var payment1 = payments[0];
+            var payment3 = payments[2];
 
             context.Set<PaymentTransaction>().AddRange(
                 new PaymentTransaction
                 {
-                    PaymentId = payment1.PaymentId,
-                    ExternalTransactionId = "TRX-CARD-001",
+                    PaymentId = payments[0].PaymentId,
+                    ExternalTransactionId = "TRX-001",
                     ProviderResponseCode = "SUCCESS",
-                    ProviderResponseMessage = "Płatność kartą zakończona poprawnie.",
-                    CreatedAt = now.AddDays(-2).AddMinutes(5)
+                    ProviderResponseMessage = "Płatność Card zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-20).AddMinutes(5)
                 },
                 new PaymentTransaction
                 {
-                    PaymentId = payment3.PaymentId,
-                    ExternalTransactionId = "TRX-PAYU-003",
-                    ProviderResponseCode = "SUCCESS",
-                    ProviderResponseMessage = "PayU potwierdziło płatność.",
-                    CreatedAt = now.AddHours(-7).AddMinutes(45)
+                    PaymentId = payments[1].PaymentId,
+                    ExternalTransactionId = "TRX-002",
+                    ProviderResponseCode = "PENDING",
+                    ProviderResponseMessage = "Płatność Cash oczekuje na potwierdzenie.",
+                    CreatedAt = now.AddDays(-19).AddMinutes(1)
                 },
                 new PaymentTransaction
                 {
-                    PaymentId = payment4.PaymentId,
-                    ExternalTransactionId = "TRX-PAYU-004",
+                    PaymentId = payments[2].PaymentId,
+                    ExternalTransactionId = "TRX-003",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność PayU zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-18).AddMinutes(7)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[3].PaymentId,
+                    ExternalTransactionId = "TRX-004",
                     ProviderResponseCode = "REJECTED",
-                    ProviderResponseMessage = "Płatność odrzucona przez operatora.",
-                    CreatedAt = now.AddHours(-2)
+                    ProviderResponseMessage = "Płatność PayU została odrzucona.",
+                    CreatedAt = now.AddDays(-17).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[4].PaymentId,
+                    ExternalTransactionId = "TRX-005",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Cash zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-16).AddMinutes(3)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[5].PaymentId,
+                    ExternalTransactionId = "TRX-006",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Card zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-15).AddMinutes(10)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[6].PaymentId,
+                    ExternalTransactionId = "TRX-007",
+                    ProviderResponseCode = "PENDING",
+                    ProviderResponseMessage = "Płatność PayU oczekuje na potwierdzenie.",
+                    CreatedAt = now.AddDays(-14).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[7].PaymentId,
+                    ExternalTransactionId = "TRX-008",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Cash zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-13).AddMinutes(2)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[8].PaymentId,
+                    ExternalTransactionId = "TRX-009",
+                    ProviderResponseCode = "REJECTED",
+                    ProviderResponseMessage = "Płatność Card została odrzucona.",
+                    CreatedAt = now.AddDays(-12).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[9].PaymentId,
+                    ExternalTransactionId = "TRX-010",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność PayU zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-11).AddMinutes(8)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[10].PaymentId,
+                    ExternalTransactionId = "TRX-011",
+                    ProviderResponseCode = "PENDING",
+                    ProviderResponseMessage = "Płatność Cash oczekuje na potwierdzenie.",
+                    CreatedAt = now.AddDays(-10).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[11].PaymentId,
+                    ExternalTransactionId = "TRX-012",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Card zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-9).AddMinutes(6)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[12].PaymentId,
+                    ExternalTransactionId = "TRX-013",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność PayU zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-8).AddMinutes(4)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[13].PaymentId,
+                    ExternalTransactionId = "TRX-014",
+                    ProviderResponseCode = "REJECTED",
+                    ProviderResponseMessage = "Płatność Cash została odrzucona.",
+                    CreatedAt = now.AddDays(-7).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[14].PaymentId,
+                    ExternalTransactionId = "TRX-015",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Card zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-6).AddMinutes(9)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[15].PaymentId,
+                    ExternalTransactionId = "TRX-016",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność PayU zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-5).AddMinutes(11)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[16].PaymentId,
+                    ExternalTransactionId = "TRX-017",
+                    ProviderResponseCode = "PENDING",
+                    ProviderResponseMessage = "Płatność Cash oczekuje na potwierdzenie.",
+                    CreatedAt = now.AddDays(-4).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[17].PaymentId,
+                    ExternalTransactionId = "TRX-018",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność Card zakończona poprawnie.",
+                    CreatedAt = now.AddDays(-3).AddMinutes(5)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[18].PaymentId,
+                    ExternalTransactionId = "TRX-019",
+                    ProviderResponseCode = "REJECTED",
+                    ProviderResponseMessage = "Płatność PayU została odrzucona.",
+                    CreatedAt = now.AddDays(-2).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[19].PaymentId,
+                    ExternalTransactionId = "TRX-020",
+                    ProviderResponseCode = "PENDING",
+                    ProviderResponseMessage = "Płatność Card oczekuje na potwierdzenie.",
+                    CreatedAt = now.AddDays(-1).AddMinutes(1)
+                },
+                new PaymentTransaction
+                {
+                    PaymentId = payments[20].PaymentId,
+                    ExternalTransactionId = "TRX-021",
+                    ProviderResponseCode = "SUCCESS",
+                    ProviderResponseMessage = "Płatność PayU zakończona poprawnie.",
+                    CreatedAt = now.AddHours(-7).AddMinutes(45)
                 }
             );
             context.SaveChanges();
+
 
             var document1 = new Document
             {
@@ -811,8 +1339,8 @@ namespace GamblingBuddies
                     GeneratedDate = now.AddHours(-5),
                     StartDate = now.AddDays(-7),
                     EndDate = now,
-                    TotalAmount = 300m,
-                    TransactionsCount = 3,
+                    TotalAmount = 3205m,
+                    TransactionsCount = 21,
                     FiltersApplied = "Status: Paid, Pending, Rejected",
                     GeneratedByUserId = admin.SystemUserId,
                     PdfFilePath = "/reports/payment-report-test.pdf"
@@ -824,8 +1352,8 @@ namespace GamblingBuddies
                     GeneratedDate = now.AddHours(-2),
                     StartDate = now.AddDays(-3),
                     EndDate = now,
-                    TotalAmount = 300m,
-                    TransactionsCount = 2,
+                    TotalAmount = 2020m,
+                    TransactionsCount = 12,
                     FiltersApplied = "Status: Paid",
                     GeneratedByUserId = manager.SystemUserId,
                     PdfFilePath = "/reports/paid-payments-test.pdf"

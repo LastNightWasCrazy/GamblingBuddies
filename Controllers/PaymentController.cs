@@ -134,7 +134,7 @@ namespace GamblingBuddies.Controllers
             if (string.IsNullOrWhiteSpace(body))
             {
                 Console.WriteLine("PAYU BODY PUSTE");
-                return Ok();
+                return BadRequest("Puste body webhooka PayU.");
             }
 
             JsonDocument document;
@@ -147,7 +147,7 @@ namespace GamblingBuddies.Controllers
             {
                 Console.WriteLine("Błąd parsowania JSON:");
                 Console.WriteLine(ex.Message);
-                return Ok();
+                return BadRequest("Niepoprawny JSON z PayU.");
             }
 
             using (document)
@@ -155,7 +155,7 @@ namespace GamblingBuddies.Controllers
                 if (!document.RootElement.TryGetProperty("order", out var order))
                 {
                     Console.WriteLine("Brak pola order w JSON");
-                    return Ok();
+                    return BadRequest("Brak pola order w webhooku PayU.");
                 }
 
                 var orderId = order.TryGetProperty("orderId", out var orderIdElement)
@@ -173,6 +173,16 @@ namespace GamblingBuddies.Controllers
                 Console.WriteLine("PAYU orderId: " + orderId);
                 Console.WriteLine("PAYU extOrderId: " + extOrderId);
                 Console.WriteLine("PAYU status: " + status);
+
+                if (string.IsNullOrWhiteSpace(orderId) && string.IsNullOrWhiteSpace(extOrderId))
+                {
+                    return BadRequest("Brak orderId oraz extOrderId w webhooku PayU.");
+                }
+
+                if (string.IsNullOrWhiteSpace(status))
+                {
+                    return BadRequest("Brak statusu płatności w webhooku PayU.");
+                }
 
                 var payment = await _context.Payments
                     .FirstOrDefaultAsync(p =>
@@ -253,12 +263,30 @@ namespace GamblingBuddies.Controllers
         [HttpGet]
         public async Task<IActionResult> Confirm(int reservationId)
         {
+            if (reservationId <= 0)
+            {
+                TempData["Error"] = "Niepoprawne ID rezerwacji.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
             var payment = await _context.Payments
                 .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
 
             if (payment == null)
             {
                 TempData["Error"] = "Nie znaleziono płatności.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            if (payment.Amount <= 0)
+            {
+                TempData["Error"] = "Kwota płatności musi być większa od zera.";
+                return RedirectToAction("Go", "Reservation");
+            }
+
+            if (payment.Reservation == null)
+            {
+                TempData["Error"] = "Płatność nie jest przypisana do rezerwacji.";
                 return RedirectToAction("Go", "Reservation");
             }
 
