@@ -85,6 +85,10 @@
                                         Pracownicy
                                    </a>
                                 </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="Registration" asp-action="PendingRequests">Do zatwierdzenia</a>
+                                </li>
                             }
 
                             @if (User.IsInRole("Manager"))
@@ -160,6 +164,10 @@
                                 <a class="nav-link text-light" asp-controller="Account" asp-action="Login">
                                     Logowanie
                                 </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Registration" asp-action="Register">Rejestracja</a>
                             </li>
                         }
                     </ul>

@@ -1,9 +1,11 @@
 ﻿using GamblingBuddies.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GamblingBuddies.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     [ApiController]
     [Route("api/[controller]")]
     public class ApiController : ControllerBase

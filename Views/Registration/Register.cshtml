@@ -1,0 +1,82 @@
+﻿@model GamblingBuddies.Models.RegistrationRequest
+
+@{
+    ViewData["Title"] = "Rejestracja";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center" style="background-color: #8b0000; color: white;">
+                    <h3 class="mb-0">Rejestracja</h3>
+                    <p class="mb-0 mt-1">Wypełnij formularz, aby zgłosić chęć rejestracji</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FirstName" class="form-label fw-bold">Imię</label>
+                            <input asp-for="FirstName" class="form-control" placeholder="Wprowadź imię" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LastName" class="form-label fw-bold">Nazwisko</label>
+                            <input asp-for="LastName" class="form-control" placeholder="Wprowadź nazwisko" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label fw-bold">Numer telefonu</label>
+                            <input asp-for="Phone" class="form-control" placeholder="Wprowadź numer telefonu" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Login" class="form-label fw-bold">Login</label>
+                            <input asp-for="Login" class="form-control" placeholder="Wybierz login" />
+                            <span asp-validation-for="Login" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PasswordHash" class="form-label fw-bold">Hasło</label>
+                            <input asp-for="PasswordHash" type="password" class="form-control" placeholder="Wybierz hasło" />
+                            <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 py-2" style="background-color: #8b0000; border: none;">
+                            Zarejestruj się
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center text-muted bg-transparent border-0 pb-4">
+                    <small>Po rejestracji administrator musi zatwierdzić Twoje konto.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

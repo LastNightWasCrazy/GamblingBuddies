@@ -16,6 +16,7 @@ namespace GamblingBuddies.Models
         public DbSet<Role> Roles { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Player> Players { get; set; }
+        public DbSet<RegistrationRequest> RegistrationRequests { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<ReservationSeat> ReservationSeats { get; set; }
         public DbSet<ReservationStatusDictionary> ReservationStatusDictionaries { get; set; }

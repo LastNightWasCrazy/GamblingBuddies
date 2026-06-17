@@ -2,11 +2,22 @@
 
 @{
     ViewData["Title"] = "Lista płatności";
+
+    int currentPage = ViewBag.CurrentPage != null ? (int)ViewBag.CurrentPage : 1;
+    int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 0;
+    int totalPayments = ViewBag.TotalPayments != null ? (int)ViewBag.TotalPayments : 0;
+    int pageSize = ViewBag.PageSize != null ? (int)ViewBag.PageSize : 20;
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Płatności</h1>
+        <div>
+            <h1>Płatności</h1>
+            <p class="text-muted mb-0">
+                Wszystkich płatności: @totalPayments | Na stronie: @pageSize
+            </p>
+        </div>
+
         <span class="badge bg-secondary fs-6">Panel administracyjny</span>
     </div>
 
@@ -68,10 +79,15 @@
                             <td>@payment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@(payment.PaidAt?.ToString("yyyy-MM-dd HH:mm") ?? "Brak")</td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@payment.PaymentId" class="btn btn-info btn-sm">Szczegóły</a>
+                                <a asp-action="Details" asp-route-id="@payment.PaymentId" class="btn btn-info btn-sm">
+                                    Szczegóły
+                                </a>
+
                                 <form asp-action="Delete" asp-route-id="@payment.PaymentId" method="post" style="display:inline;">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Czy na pewno chcesz usunąć tę płatność?')">Usuń</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Czy na pewno chcesz usunąć tę płatność?')">
+                                        Usuń
+                                    </button>
                                 </form>
                             </td>
                         </tr>
