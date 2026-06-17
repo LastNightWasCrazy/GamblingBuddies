@@ -17,12 +17,14 @@ namespace GamblingBuddies.Models
         public string PasswordHash { get; set; } = null!;
 
         public bool IsActive { get; set; }
-
+        public bool IsApproved { get; set; } = false;
         public DateTime CreatedAt { get; set; }
 
 
         public ICollection<UserRole> UserRoles { get; set; }
 
         public ICollection<WorkShift> WorkShiftsCreated { get; set; } = new List<WorkShift>();
+
+
     }
 }
