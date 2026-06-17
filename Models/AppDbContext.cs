@@ -111,6 +111,15 @@ namespace GamblingBuddies.Models
             modelBuilder.Entity<PaymentReport>()
                 .Property(p => p.TotalAmount)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SystemUser>()
+    .ToTable("SystemUsers", tb => tb.HasTrigger("trg_SystemUsers_Audit"));
+
+            modelBuilder.Entity<Payment>()
+                .ToTable("Payments", tb => tb.HasTrigger("trg_Archive_PaidPayments"));
+
+            modelBuilder.Entity<RegistrationRequest>()
+                .ToTable("RegistrationRequests", tb => tb.HasTrigger("trg_RegistrationRequest_StatusHistory"));
         }
     }
 
